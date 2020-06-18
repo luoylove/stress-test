@@ -23,6 +23,7 @@ public class StressTester {
     public static StressResult test(StressRequest request) {
         StressContext stressContext = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
                 .endLatch(new CountDownLatch(request.getThreadCount()))
+                .isTimeStage(false)
                 .build();
 
         StressResult stressResult = StressResult.builder().everyData(Lists.newCopyOnWriteArrayList())
@@ -62,9 +63,8 @@ public class StressTester {
                 break;
             }
 
-            System.out.println("System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime():" + (System.currentTimeMillis() - startRunTime));
-            if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime() && !threadPool.isShutdown()) {
-                threadPool.shutdownNow();
+            if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
+                stressContext.setTimeStage(true);
                 break;
             }
         }
@@ -125,7 +125,7 @@ public class StressTester {
 
     public static void main(String[] args) {
         List<StressTask> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest stressRequest = StressRequest.builder().tasks(tasks).threadCount(10).concurrencyCount(50).totalConcurrencyTime(5L * 1000).build();
+        StressRequest stressRequest = StressRequest.builder().tasks(tasks).threadCount(10).concurrencyCount(50).totalConcurrencyTime(8L * 1000).build();
         StressResult stressResult = test(stressRequest);
         System.out.println(stressResult.toString());
     }

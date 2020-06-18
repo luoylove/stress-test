@@ -24,4 +24,7 @@ public class StressContext {
 
     /** 设置结束哨兵,监控所有任务是否都执行完 */
     private CountDownLatch endLatch;
+
+    /**是否达到运行最大时长 */
+    private boolean isTimeStage;
 }

@@ -38,6 +38,9 @@ public class StressWorker implements Runnable{
 
     private void doRun() {
         for(StressTask stressTask : stressTasks) {
+            if(stressContext.isTimeStage()) {
+                return;
+            }
             Long endTime = null;
             Object res = null;
             Boolean isFailed = false;

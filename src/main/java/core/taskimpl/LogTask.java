@@ -16,7 +16,7 @@ public class LogTask implements StressTask {
 
     @Override
     public Object task() throws Throwable {
-        Thread.sleep(1000);
+//        Thread.sleep(1000);
         System.out.println(Thread.currentThread().getName() + ": " + log);
 //        if (log.equals("2")) {
 //            throw new RuntimeException("test error");
