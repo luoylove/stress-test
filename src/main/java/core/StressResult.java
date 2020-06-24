@@ -21,7 +21,7 @@ public class StressResult<T> {
     private AtomicInteger totalCounter;
 
     /**
-     *  每一个请求的时间间隔 ms
+     *  每一个请求的时间间隔 ns
      */
     private CopyOnWriteArrayList<Long> everyTimes;
 
@@ -29,4 +29,9 @@ public class StressResult<T> {
      * 每一个请求的返回值
      */
     private CopyOnWriteArrayList<T> everyData;
+
+    /**
+     * 线程数量
+     */
+    private int threadCount;
 }

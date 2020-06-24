@@ -1,5 +1,6 @@
 import com.google.common.collect.Lists;
 import core.StressContext;
+import core.StressFormat;
 import core.StressRequest;
 import core.StressResult;
 import core.StressTask;
@@ -31,6 +32,7 @@ public class StressTester {
                 .everyTimes(Lists.newCopyOnWriteArrayList())
                 .failedCounter(new AtomicInteger())
                 .totalCounter(new AtomicInteger())
+                .threadCount(request.getThreadCount())
                 .build();
 
         StressThreadPool threadPool = new StressThreadPool().createThreadPool(request.getThreadCount());
@@ -54,13 +56,12 @@ public class StressTester {
             }
         }
 
+        boolean isShutdown = true;
+        Long startRunTime = System.currentTimeMillis();
         //执行worker
         for(StressWorker worker : workers) {
             threadPool.execute(worker);
         }
-
-        boolean isShutdown = true;
-        Long startRunTime = System.currentTimeMillis();
 
         while (isShutdown) {
             //forever 这种情况需要手动结束
@@ -143,8 +144,9 @@ public class StressTester {
 
     public static void main(String[] args) {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(2L * 1000).build();
+        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).concurrencyCount(10).totalConcurrencyTime(2L * 1000).build();
         StressResult stressResult = test(stressRequest);
+        StressFormat.format(stressResult);
         System.out.println(stressResult.toString());
     }
 }

@@ -45,19 +45,19 @@ public class StressWorker<T> implements Runnable{
                 Long endTime = null;
                 T res = null;
                 Boolean isFailed = false;
-                Long startTime = System.currentTimeMillis() ;
+                Long startTime = System.nanoTime() ;
                 try {
                     res =  stressTask.task();
                 } catch (Throwable throwable) {
                     throwable.printStackTrace();
                     //如果执行失败记录时间点并且失败+1
-                    endTime = System.currentTimeMillis();
+                    endTime = System.nanoTime();
                     stressResult.getFailedCounter().getAndIncrement();
                     isFailed = true;
                 } finally {
                     Long everyTime;
                     if (!isFailed) {
-                        everyTime = System.currentTimeMillis() - startTime;
+                        everyTime = System.nanoTime() - startTime;
                     } else {
                         everyTime = endTime - startTime;
                     }
