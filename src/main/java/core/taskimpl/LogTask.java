@@ -6,7 +6,7 @@ import core.StressTask;
  * @Author: luoy
  * @Date: 2020/6/16 18:15.
  */
-public class LogTask implements StressTask {
+public class LogTask<String> implements StressTask {
 
     private String log;
 
@@ -15,7 +15,7 @@ public class LogTask implements StressTask {
     }
 
     @Override
-    public Object task() throws Throwable {
+    public String task() throws Throwable {
 //        Thread.sleep(1000);
         System.out.println(Thread.currentThread().getName() + ": " + log);
 //        if (log.equals("2")) {

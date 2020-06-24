@@ -24,6 +24,7 @@ public class StressTester {
         StressContext stressContext = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
                 .endLatch(new CountDownLatch(request.getThreadCount()))
                 .isTimeStage(false)
+                .isCountStage(request.getConcurrencyCount() > 0 ? true : false)
                 .build();
 
         StressResult stressResult = StressResult.builder().everyData(Lists.newCopyOnWriteArrayList())
@@ -38,34 +39,51 @@ public class StressTester {
 
         List<StressWorker> workers = new ArrayList<>(threadCount);
 
-        List<List<StressTask>> workerTasks = splitListByNumber(buildTotalTask(request), threadCount);
-
-        //构建works, works与workerTasks长度一致
-        for(List<StressTask> tasks : workerTasks) {
-            //每一个worker都有一个任务集合,集合大小为每个线程执行次数
-            StressWorker worker = new StressWorker(tasks, stressContext, stressResult);
-            workers.add(worker);
+        if (request.getConcurrencyCount() <= 0) {
+            for (int i = 0; i < threadCount; i++) {
+                StressWorker worker = new StressWorker(request.getTasks(), stressContext, stressResult);
+                workers.add(worker);
+            }
+        } else {
+            List<List<StressTask>> workerTasks = splitListByNumber(buildTotalTask(request), threadCount);
+            //构建works, works与workerTasks长度一致
+            for(List<StressTask> tasks : workerTasks) {
+                //每一个worker都有一个任务集合,集合大小为每个线程执行次数
+                StressWorker worker = new StressWorker(tasks, stressContext, stressResult);
+                workers.add(worker);
+            }
         }
 
+        //执行worker
         for(StressWorker worker : workers) {
             threadPool.execute(worker);
         }
 
-        boolean isShutDownByTime = true;
+        boolean isShutdown = true;
         Long startRunTime = System.currentTimeMillis();
 
-        while (isShutDownByTime) {
-            if (request.getTotalConcurrencyTime() == null || request.getTotalConcurrencyTime() == 0L) {
+        while (isShutdown) {
+            //forever 这种情况需要手动结束
+            if (request.getTotalConcurrencyTime() <= 0L && request.getConcurrencyCount() <= 0) {
+                System.out.println("forever");
                 break;
             }
 
-            if (stressResult.getTotalCounter().get() >= request.getThreadCount() * request.getConcurrencyCount()) {
-                break;
+            // 总运行次数 如果先达到次数限制,退出
+            if (request.getConcurrencyCount() > 0) {
+                if (stressResult.getTotalCounter().get() >= request.getThreadCount() * request.getConcurrencyCount()) {
+                    System.out.println("count done");
+                    break;
+                }
             }
 
-            if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
-                stressContext.setTimeStage(true);
-                break;
+            // 总运行时间 如果先达到时间限制,退出
+            if (request.getTotalConcurrencyTime() > 0L) {
+                if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
+                    stressContext.setTimeStage(true);
+                    System.out.println("time done");
+                    break;
+                }
             }
         }
 
@@ -124,8 +142,8 @@ public class StressTester {
     }
 
     public static void main(String[] args) {
-        List<StressTask> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest stressRequest = StressRequest.builder().tasks(tasks).threadCount(10).concurrencyCount(50).totalConcurrencyTime(8L * 1000).build();
+        List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
+        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(2L * 1000).build();
         StressResult stressResult = test(stressRequest);
         System.out.println(stressResult.toString());
     }

@@ -8,7 +8,7 @@ import java.util.List;
  * @Author: luoy
  * @Date: 2020/6/9 13:36.
  */
-public class StressWorker implements Runnable{
+public class StressWorker<T> implements Runnable{
     private List<StressTask> stressTasks;
 
     private StressContext stressContext;
@@ -37,32 +37,37 @@ public class StressWorker implements Runnable{
 
 
     private void doRun() {
-        for(StressTask stressTask : stressTasks) {
-            if(stressContext.isTimeStage()) {
-                return;
-            }
-            Long endTime = null;
-            Object res = null;
-            Boolean isFailed = false;
-            Long startTime = System.currentTimeMillis() ;
-            try {
-                res = stressTask.task();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-                //如果执行失败记录时间点并且失败+1
-                endTime = System.currentTimeMillis();
-                stressResult.getFailedCounter().getAndIncrement();
-                isFailed = true;
-            } finally {
-                Long everyTime;
-                if (!isFailed) {
-                    everyTime = System.currentTimeMillis() - startTime;
-                } else {
-                    everyTime = endTime - startTime;
+        while (true) {
+            for(StressTask<T> stressTask : stressTasks) {
+                if(stressContext.isTimeStage()) {
+                    return;
                 }
-                stressResult.getTotalCounter().getAndIncrement();
-                stressResult.getEveryData().add(res);
-                stressResult.getEveryTimes().add(everyTime);
+                Long endTime = null;
+                T res = null;
+                Boolean isFailed = false;
+                Long startTime = System.currentTimeMillis() ;
+                try {
+                    res =  stressTask.task();
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                    //如果执行失败记录时间点并且失败+1
+                    endTime = System.currentTimeMillis();
+                    stressResult.getFailedCounter().getAndIncrement();
+                    isFailed = true;
+                } finally {
+                    Long everyTime;
+                    if (!isFailed) {
+                        everyTime = System.currentTimeMillis() - startTime;
+                    } else {
+                        everyTime = endTime - startTime;
+                    }
+                    stressResult.getTotalCounter().getAndIncrement();
+                    stressResult.getEveryData().add(res);
+                    stressResult.getEveryTimes().add(everyTime);
+                }
+            }
+            if (stressContext.isCountStage()) {
+                return;
             }
         }
     }

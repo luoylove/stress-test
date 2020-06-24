@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Data
 @Builder
-public class StressResult {
+public class StressResult<T> {
     /** 统计任务执行失败数量 */
     private AtomicInteger failedCounter;
 
@@ -28,5 +28,5 @@ public class StressResult {
     /**
      * 每一个请求的返回值
      */
-    private CopyOnWriteArrayList<Object> everyData;
+    private CopyOnWriteArrayList<T> everyData;
 }

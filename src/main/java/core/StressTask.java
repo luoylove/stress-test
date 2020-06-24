@@ -5,6 +5,6 @@ package core;
  * @Author: luoy
  * @Date: 2020/6/9 13:39.
  */
-public interface StressTask {
-    Object task() throws Throwable;
+public interface StressTask<T> {
+    T task() throws Throwable;
 }
