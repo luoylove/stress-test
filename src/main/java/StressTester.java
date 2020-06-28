@@ -7,6 +7,7 @@ import core.StressTask;
 import core.StressThreadPool;
 import core.StressWorker;
 import core.taskimpl.LogTask;
+import core.util.ThreadPoolUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,7 +26,7 @@ public class StressTester {
         StressContext stressContext = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
                 .endLatch(new CountDownLatch(request.getThreadCount()))
                 .isTimeStage(false)
-                .isCountStage(request.getConcurrencyCount() > 0 ? true : false)
+                .isCountStage(request.getConcurrencyCount() > 0)
                 .build();
 
         StressResult stressResult = StressResult.builder().everyData(Lists.newCopyOnWriteArrayList())
@@ -56,45 +57,49 @@ public class StressTester {
             }
         }
 
-        boolean isShutdown = true;
-        Long startRunTime = System.currentTimeMillis();
-        //执行worker
-        for(StressWorker worker : workers) {
-            threadPool.execute(worker);
-        }
-
-        while (isShutdown) {
-            //forever 这种情况需要手动结束
-            if (request.getTotalConcurrencyTime() <= 0L && request.getConcurrencyCount() <= 0) {
-                System.out.println("forever");
-                break;
+        // 重启一个线程用于监控压测情况
+        ThreadPoolUtil.execute(() -> {
+            boolean isShutdown = true;
+            Long startRunTime = System.currentTimeMillis();
+            //执行worker
+            for(StressWorker worker : workers) {
+                threadPool.execute(worker);
             }
 
-            // 总运行次数 如果先达到次数限制,退出
-            if (request.getConcurrencyCount() > 0) {
-                if (stressResult.getTotalCounter().get() >= request.getThreadCount() * request.getConcurrencyCount()) {
-                    System.out.println("count done");
+            while (isShutdown) {
+                //forever 这种情况需要手动结束
+                if (request.getTotalConcurrencyTime() <= 0L && request.getConcurrencyCount() <= 0) {
+                    System.out.println("forever");
                     break;
+                }
+
+                // 总运行次数 如果先达到次数限制,退出
+                if (request.getConcurrencyCount() > 0) {
+                    if (stressResult.getTotalCounter().get() >= request.getThreadCount() * request.getConcurrencyCount()) {
+                        System.out.println("count done");
+                        break;
+                    }
+                }
+
+                // 总运行时间 如果先达到时间限制,退出
+                if (request.getTotalConcurrencyTime() > 0L) {
+                    if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
+                        stressContext.setTimeStage(true);
+                        System.out.println("time done");
+                        break;
+                    }
                 }
             }
 
-            // 总运行时间 如果先达到时间限制,退出
-            if (request.getTotalConcurrencyTime() > 0L) {
-                if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
-                    stressContext.setTimeStage(true);
-                    System.out.println("time done");
-                    break;
-                }
+            try {
+                stressContext.getEndLatch().await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-        }
 
-        try {
-            stressContext.getEndLatch().await();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+            threadPool.shutdown();
+        });
 
-        threadPool.shutdown();
         return stressResult;
     }
 
@@ -142,11 +147,14 @@ public class StressTester {
         return result;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).concurrencyCount(10).totalConcurrencyTime(2L * 1000).build();
+        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(10L * 1000).build();
         StressResult stressResult = test(stressRequest);
-        StressFormat.format(stressResult);
-        System.out.println(stressResult.toString());
+        for(;;) {
+            StressFormat.format(stressResult);
+            Thread.sleep(1000);
+        }
+
     }
 }

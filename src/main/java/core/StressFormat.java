@@ -15,6 +15,10 @@ public class StressFormat {
         //总次数
         int totalCount = result.getTotalCounter().get();
 
+        if (totalTime <= 0 && totalCount<= 0) {
+            return;
+        }
+
         //tps 四舍五入
         Double tps = new BigDecimal(String.valueOf(totalCount))
                 .divide(new BigDecimal(String.valueOf(totalTime / 1000)), 4, BigDecimal.ROUND_HALF_UP)
@@ -23,15 +27,15 @@ public class StressFormat {
         List<Long> sortResult = sort(result.getEveryTimes());
 
         int index = sortResult.size() - 1;
-        Double minTime = toMs(sortResult.get(0));
-        Double maxTime = toMs(sortResult.get(index));
-        Double count_50 = toMs(sortResult.get(index / 2));
-        Double count_60 = toMs(sortResult.get(index * 60 / 100));
-        Double count_70 = toMs(sortResult.get(index * 70 / 100));
-        Double count_80 = toMs(sortResult.get(index * 80 / 100));
-        Double count_90 = toMs(sortResult.get(index * 90 / 100));
-        Double count_95 = toMs(sortResult.get(index * 95 / 100));
-        Double count_99 = toMs(sortResult.get(index * 99 / 100));
+        Double minTime = nsToMs(sortResult.get(0));
+        Double maxTime = nsToMs(sortResult.get(index));
+        Double count_50 = nsToMs(sortResult.get(index / 2));
+        Double count_60 = nsToMs(sortResult.get(index * 60 / 100));
+        Double count_70 = nsToMs(sortResult.get(index * 70 / 100));
+        Double count_80 = nsToMs(sortResult.get(index * 80 / 100));
+        Double count_90 = nsToMs(sortResult.get(index * 90 / 100));
+        Double count_95 = nsToMs(sortResult.get(index * 95 / 100));
+        Double count_99 = nsToMs(sortResult.get(index * 99 / 100));
 
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("并发数:").append(result.getThreadCount()).append("\n")
@@ -59,13 +63,13 @@ public class StressFormat {
                 .doubleValue();
     }
 
-    private static Double toMs(Long time) {
+    private static Double nsToMs(Long time) {
         return new BigDecimal(String.valueOf(time))
                 .divide(new BigDecimal(String.valueOf(1000 * 1000)), 4, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
     }
 
-    private static Double toS(Long time) {
+    private static Double nsToS(Double time) {
         return new BigDecimal(String.valueOf(time))
                 .divide(new BigDecimal(String.valueOf(1000 * 1000 * 1000)), 4, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
