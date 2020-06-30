@@ -1,6 +1,6 @@
-package core.taskimpl;
+package com.ly.core.taskimpl;
 
-import core.StressTask;
+import com.ly.core.StressTask;
 
 /**
  * @Author: luoy

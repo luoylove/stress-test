@@ -1,8 +1,8 @@
-package core.taskimpl;
+package com.ly.core.taskimpl;
 
-import core.util.HttpRequestParams;
-import core.util.HttpResponse;
-import core.util.HttpUtil;
+import com.ly.core.util.HttpRequestParams;
+import com.ly.core.util.HttpResponse;
+import com.ly.core.util.HttpUtil;
 
 /**
  * http delete task

@@ -1,13 +1,15 @@
+package com.ly;
+
 import com.google.common.collect.Lists;
-import core.StressContext;
-import core.StressFormat;
-import core.StressRequest;
-import core.StressResult;
-import core.StressTask;
-import core.StressThreadPool;
-import core.StressWorker;
-import core.taskimpl.LogTask;
-import core.util.ThreadPoolUtil;
+import com.ly.core.StressContext;
+import com.ly.core.StressFormat;
+import com.ly.core.StressRequest;
+import com.ly.core.StressResult;
+import com.ly.core.StressTask;
+import com.ly.core.StressThreadPool;
+import com.ly.core.StressWorker;
+import com.ly.core.taskimpl.LogTask;
+import com.ly.core.util.ThreadPoolUtil;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,8 +24,20 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class StressTester {
 
-    public static StressResult test(StressRequest request) {
-        StressContext stressContext = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
+    public StressContext getContext() {
+        return context;
+    }
+
+    public Boolean getFinish() {
+        return isFinish;
+    }
+
+    private StressContext context;
+
+    private Boolean isFinish = false;
+
+    public StressResult test(StressRequest request) {
+        this.context = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
                 .endLatch(new CountDownLatch(request.getThreadCount()))
                 .isTimeStage(false)
                 .isCountStage(request.getConcurrencyCount() > 0)
@@ -44,7 +58,7 @@ public class StressTester {
 
         if (request.getConcurrencyCount() <= 0) {
             for (int i = 0; i < threadCount; i++) {
-                StressWorker worker = new StressWorker(request.getTasks(), stressContext, stressResult);
+                StressWorker worker = new StressWorker(request.getTasks(), context, stressResult);
                 workers.add(worker);
             }
         } else {
@@ -52,7 +66,7 @@ public class StressTester {
             //构建works, works与workerTasks长度一致
             for(List<StressTask> tasks : workerTasks) {
                 //每一个worker都有一个任务集合,集合大小为每个线程执行次数
-                StressWorker worker = new StressWorker(tasks, stressContext, stressResult);
+                StressWorker worker = new StressWorker(tasks, context, stressResult);
                 workers.add(worker);
             }
         }
@@ -84,7 +98,7 @@ public class StressTester {
                 // 总运行时间 如果先达到时间限制,退出
                 if (request.getTotalConcurrencyTime() > 0L) {
                     if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
-                        stressContext.setTimeStage(true);
+                        context.setTimeStage(true);
                         System.out.println("time done");
                         break;
                     }
@@ -92,7 +106,8 @@ public class StressTester {
             }
 
             try {
-                stressContext.getEndLatch().await();
+                context.getEndLatch().await();
+                this.isFinish = true;
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -150,7 +165,7 @@ public class StressTester {
     public static void main(String[] args) throws InterruptedException {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
         StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(10L * 1000).build();
-        StressResult stressResult = test(stressRequest);
+        StressResult stressResult = new StressTester().test(stressRequest);
         for(;;) {
             StressFormat.format(stressResult);
             Thread.sleep(1000);

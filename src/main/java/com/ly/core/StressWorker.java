@@ -1,4 +1,4 @@
-package core;
+package com.ly.core;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package core.util;
+package com.ly.core.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,13 +6,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 
+import java.util.Map;
+
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class HttpResponse{
-	private int statusCode;
-
-	private String body;
+@Builder
+public class HttpRequestJson {
+	private String url;
+	private Map<String, String> headers;
+	private String body;	
 }

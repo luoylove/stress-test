@@ -1,4 +1,4 @@
-package core.util;
+package com.ly.core.util;
 
 import org.apache.http.HeaderElement;
 import org.apache.http.HeaderElementIterator;

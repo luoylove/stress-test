@@ -1,4 +1,4 @@
-package core.util;
+package com.ly.core.util;
 
 import java.util.Collection;
 import java.util.List;

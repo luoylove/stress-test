@@ -1,8 +1,8 @@
-package core.taskimpl;
+package com.ly.core.taskimpl;
 
-import core.util.HttpRequestJson;
-import core.util.HttpResponse;
-import core.util.HttpUtil;
+import com.ly.core.util.HttpRequestJson;
+import com.ly.core.util.HttpResponse;
+import com.ly.core.util.HttpUtil;
 
 /**
  * http post4json task

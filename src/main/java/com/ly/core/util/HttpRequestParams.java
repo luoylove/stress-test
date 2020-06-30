@@ -1,4 +1,4 @@
-package core.util;
+package com.ly.core.util;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
