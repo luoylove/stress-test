@@ -6,6 +6,11 @@ import com.ly.core.StressResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
 /**
  * @Author: luoy
  * @Date: 2020/6/28 15:45.
@@ -24,13 +29,22 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                 StressTester tester = new StressTester();
                 StressResult stressResult = tester.test(stressRequest);
 
+                StressResult originalResult = null;
+
+                //发送增量数据过去
                 for(;;) {
                     Thread.sleep(1000);
-//                    System.out.println("发送数据: " + stressResult);
+                    StressResult incrementalResult;
+
                     if (!tester.getFinish()) {
-                        ctx.writeAndFlush(stressResult);
+                        incrementalResult = incrementalResult(originalResult, stressResult);
+                        originalResult = clone(stressResult);
+                        System.out.println("发送数据:" + incrementalResult);
+                        ctx.writeAndFlush(incrementalResult == null ? "" : incrementalResult);
                     } else {
-                        ctx.writeAndFlush(stressResult);
+                        incrementalResult = incrementalResult(originalResult, stressResult);
+                        System.out.println("发送数据:" + incrementalResult);
+                        ctx.writeAndFlush(incrementalResult == null ? "" : incrementalResult);
                         ctx.writeAndFlush(DOWN_FLAG);
                         break;
                     }
@@ -47,5 +61,40 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("address:" + ctx.channel().remoteAddress());
+    }
+
+
+    public StressResult incrementalResult(StressResult originalResult, StressResult presentResult) {
+        if (presentResult == null) {
+            return null;
+        } else if (originalResult != null && originalResult.getTotalCounter().get() == presentResult.getTotalCounter().get()) {
+            return null;
+        } else if (originalResult == null) {
+            return clone(presentResult);
+        } else  {
+            int originalSize = originalResult.getEveryTimes().size();
+            int presentSize = presentResult.getEveryTimes().size();
+            List<Long> everyTimes = new ArrayList<>(presentSize - originalSize);
+            List<Object> everyData = new ArrayList<>(presentSize - originalSize);
+            for(int i = originalSize; i < presentSize; i++ ) {
+                everyTimes.add((Long) presentResult.getEveryTimes().get(i));
+                everyData.add(presentResult.getEveryData().get(i));
+            }
+            return StressResult.builder().totalCounter(new AtomicInteger(presentResult.getTotalCounter().get() - originalResult.getTotalCounter().get()))
+                    .failedCounter(new AtomicInteger(presentResult.getFailedCounter().get() - originalResult.getFailedCounter().get()))
+                    .threadCount(presentResult.getThreadCount())
+                    .everyTimes(everyTimes)
+                    .everyData(everyData)
+                    .build();
+        }
+    }
+
+    public StressResult clone(StressResult stressResult) {
+        return StressResult.builder().threadCount(stressResult.getThreadCount())
+                .failedCounter(new AtomicInteger(stressResult.getFailedCounter().get()))
+                .totalCounter(new AtomicInteger(stressResult.getTotalCounter().get()))
+                .everyData((List<Object>) stressResult.getEveryData().stream().collect(Collectors.toList()))
+                .everyTimes((List<Long>) stressResult.getEveryTimes().stream().collect(Collectors.toList()))
+                .build();
     }
 }

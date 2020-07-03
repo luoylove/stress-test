@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -28,12 +28,12 @@ public class StressResult<T> implements Serializable {
     /**
      *  每一个请求的时间间隔 ns
      */
-    private CopyOnWriteArrayList<Long> everyTimes;
+    private List<Long> everyTimes;
 
     /**
      * 每一个请求的返回值
      */
-    private CopyOnWriteArrayList<T> everyData;
+    private List<T> everyData;
 
     /**
      * 线程数量
