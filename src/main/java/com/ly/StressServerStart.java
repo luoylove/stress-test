@@ -1,4 +1,4 @@
-package com.ly.core;
+package com.ly;
 
 import com.ly.core.tcp.NettyServer;
 

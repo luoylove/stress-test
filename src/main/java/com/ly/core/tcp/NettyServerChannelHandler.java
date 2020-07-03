@@ -3,7 +3,6 @@ package com.ly.core.tcp;
 import com.ly.StressTester;
 import com.ly.core.StressRequest;
 import com.ly.core.StressResult;
-import com.ly.core.util.JSONSerializerUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -18,7 +17,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
         //msg 接收客户端数据
-        System.out.println(msg);
+        System.out.println("接收数据:" + msg);
         if (msg instanceof StressRequest) {
             StressRequest stressRequest = (StressRequest)msg;
             if (stressRequest != null) {
@@ -26,11 +25,12 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                 StressResult stressResult = tester.test(stressRequest);
 
                 for(;;) {
+                    Thread.sleep(1000);
+//                    System.out.println("发送数据: " + stressResult);
                     if (!tester.getFinish()) {
-                        ctx.writeAndFlush(JSONSerializerUtil.serialize(stressResult));
-                        Thread.sleep(1000);
+                        ctx.writeAndFlush(stressResult);
                     } else {
-                        ctx.writeAndFlush(JSONSerializerUtil.serialize(stressResult));
+                        ctx.writeAndFlush(stressResult);
                         ctx.writeAndFlush(DOWN_FLAG);
                         break;
                     }

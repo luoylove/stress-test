@@ -8,11 +8,11 @@ import io.netty.handler.codec.MessageToByteEncoder;
  * @Author: luoy
  * @Date: 2020/6/30 10:08.
  */
-public class StressDataEncoder extends MessageToByteEncoder<Object> {
+public class KryoDataEncoder extends MessageToByteEncoder<Object> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf out) throws Exception {
-        out.writeBytes(ByteConverter.encode(msg));
+        KryoCodec.encode(out, msg);
         ctx.flush();
     }
 }

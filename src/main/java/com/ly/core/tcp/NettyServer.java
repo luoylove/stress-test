@@ -1,7 +1,7 @@
 package com.ly.core.tcp;
 
-import com.ly.core.tcp.serialize.StressDataDecoder;
-import com.ly.core.tcp.serialize.StressDataEncoder;
+import com.ly.core.tcp.serialize.KryoDataDecoder;
+import com.ly.core.tcp.serialize.KryoDataEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -28,8 +28,8 @@ public class NettyServer {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             socketChannel.pipeline()
-                                    .addLast("decoder", new StressDataDecoder())
-                                    .addLast("encoder", new StressDataEncoder())
+                                    .addLast("decoder", new KryoDataDecoder())
+                                    .addLast("encoder", new KryoDataEncoder())
                                     .addLast("handler", new NettyServerChannelHandler());
                         }
                     })

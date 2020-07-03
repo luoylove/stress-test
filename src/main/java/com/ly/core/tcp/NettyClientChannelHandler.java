@@ -13,11 +13,12 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Objec
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println(msg);
-
+        System.out.println("接收数据: " + msg);
         if (msg instanceof String) {
             if (NettyServerChannelHandler.DOWN_FLAG.equals(msg)) {
                 ctx.disconnect();
+                ctx.close();
+                System.out.println("client退出");
                 return;
             }
         }

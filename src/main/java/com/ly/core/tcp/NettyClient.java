@@ -1,9 +1,8 @@
 package com.ly.core.tcp;
 
 import com.ly.core.StressRequest;
-import com.ly.core.tcp.serialize.StressDataDecoder;
-import com.ly.core.tcp.serialize.StressDataEncoder;
-import com.ly.core.util.JSONSerializerUtil;
+import com.ly.core.tcp.serialize.KryoDataDecoder;
+import com.ly.core.tcp.serialize.KryoDataEncoder;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -30,8 +29,8 @@ public class NettyClient {
                     @Override
                     protected void initChannel(NioSocketChannel channel) throws Exception {
                         channel.pipeline()
-                                .addLast("decoder", new StressDataDecoder())
-                                .addLast("encoder", new StressDataEncoder())
+                                .addLast("decoder", new KryoDataDecoder())
+                                .addLast("encoder", new KryoDataEncoder())
                                 .addLast("handler", new NettyClientChannelHandler());
                     }
                 });
@@ -48,11 +47,18 @@ public class NettyClient {
         if (channel == null) {
             throw new RuntimeException("client端未连接");
         }
-        channel.writeAndFlush(JSONSerializerUtil.serialize(request));
+        channel.writeAndFlush(request);
+    }
+
+    public boolean isShutdown() {
+        if (channel == null) {
+            return true;
+        }
+        return !channel.isOpen();
     }
 
     public void shutdown() {
         eventExecutors.shutdownGracefully();
-        System.out.println(("client关闭成功"));
+        System.out.println("client关闭成功");
     }
 }
