@@ -25,9 +25,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Objec
 
         if (msg instanceof StressResult) {
             StressResult remoteResult = (StressResult) msg;
-            if (remoteResult != null) {
-                StressRemoteContext.remoteResult.put(Thread.currentThread(), remoteResult);
-            }
+            StressRemoteContext.calculateResult(remoteResult);
         }
     }
 }

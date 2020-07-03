@@ -46,6 +46,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                         System.out.println("发送数据:" + incrementalResult);
                         ctx.writeAndFlush(incrementalResult == null ? "" : incrementalResult);
                         ctx.writeAndFlush(DOWN_FLAG);
+                        System.out.println("该机器压测总数据: " + stressResult);
                         break;
                     }
                 }

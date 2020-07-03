@@ -25,5 +25,6 @@
     3. 支持压测协议
         http
         其他协议可实现StressTask自动实现
-## 待完成:
-    1. 远程集群压测
+    4. 远程集群压测
+        StressServerStart 启动server端
+        StressRemoteTester 设置需要压测的机器ip:port 

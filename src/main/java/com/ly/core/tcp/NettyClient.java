@@ -21,8 +21,9 @@ public class NettyClient {
 
     private final EventLoopGroup eventExecutors = new NioEventLoopGroup(1);
 
+    private final Bootstrap client = new Bootstrap();
+
     public void start(String ip, int port) throws Exception {
-        Bootstrap client = new Bootstrap();
         client.group(eventExecutors)
                 .channel(NioSocketChannel.class)
                 .handler(new ChannelInitializer<NioSocketChannel>() {
@@ -58,6 +59,7 @@ public class NettyClient {
     }
 
     public void shutdown() {
+        channel.close();
         eventExecutors.shutdownGracefully();
         System.out.println("client关闭成功");
     }
