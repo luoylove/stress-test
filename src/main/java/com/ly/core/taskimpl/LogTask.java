@@ -6,7 +6,7 @@ import com.ly.core.StressTask;
  * @Author: luoy
  * @Date: 2020/6/16 18:15.
  */
-public class LogTask<String> implements StressTask {
+public class LogTask implements StressTask<String> {
 
     private String log;
 

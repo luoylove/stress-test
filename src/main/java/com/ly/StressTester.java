@@ -8,6 +8,8 @@ import com.ly.core.StressResult;
 import com.ly.core.StressTask;
 import com.ly.core.StressThreadPool;
 import com.ly.core.StressWorker;
+import com.ly.core.enums.ValidateRule;
+import com.ly.core.enums.ValidateTarget;
 import com.ly.core.taskimpl.LogTask;
 import com.ly.core.util.ThreadPoolUtil;
 
@@ -58,7 +60,7 @@ public class StressTester {
 
         if (request.getConcurrencyCount() <= 0) {
             for (int i = 0; i < threadCount; i++) {
-                StressWorker worker = new StressWorker(request.getTasks(), context, stressResult);
+                StressWorker worker = new StressWorker(request, context, stressResult);
                 workers.add(worker);
             }
         } else {
@@ -66,7 +68,8 @@ public class StressTester {
             //构建works, works与workerTasks长度一致
             for(List<StressTask> tasks : workerTasks) {
                 //每一个worker都有一个任务集合,集合大小为每个线程执行次数
-                StressWorker worker = new StressWorker(tasks, context, stressResult);
+                request.setTasks(tasks);
+                StressWorker worker = new StressWorker(request, context, stressResult);
                 workers.add(worker);
             }
         }
@@ -164,12 +167,25 @@ public class StressTester {
 
     public static void main(String[] args) throws InterruptedException {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(10L * 1000).build();
-        StressResult stressResult = new StressTester().test(stressRequest);
+        StressRequest<String> stressRequest = StressRequest.<String>builder()
+                        .tasks(tasks)
+                        .validate(StressRequest.Validate.builder()
+                                        .rule(ValidateRule.EQUALS)
+                                        .target(ValidateTarget.RESPONSE_VALUE)
+                                        .data("2").build())
+                        .threadCount(10)
+                        .totalConcurrencyTime(10L * 1000)
+                        .build();
+        StressTester tester = new StressTester();
+        StressResult stressResult = tester.test(stressRequest);
         for(;;) {
             StressFormat.format(stressResult);
             Thread.sleep(1000);
+            if (tester.getFinish()){
+                ThreadPoolUtil.shutdown();
+                StressFormat.format(stressResult);
+                return;
+            }
         }
-
     }
 }

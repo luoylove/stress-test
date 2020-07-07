@@ -24,7 +24,7 @@ public class StressFormat {
         //物理实际耗时
         Double totalPhysicsTime = getTotalPhysicsTime(totalTaskTime, result.getThreadCount());
 
-        Double failedRate = getFailedRate(totalCount, totalFailedCount);
+        Double failedRate = getFailedRate(totalCount, totalFailedCount) * 100;
 
         Double aveTime = getAveTime(totalCount, totalTaskTime);
 
@@ -89,7 +89,7 @@ public class StressFormat {
         }
         return new BigDecimal(String.valueOf(totalFailed))
                 .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
-                .doubleValue() * 100;
+                .doubleValue();
     }
 
     private static Double getTotalTimeToMs(StressResult result) {

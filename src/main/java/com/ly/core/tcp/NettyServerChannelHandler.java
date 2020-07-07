@@ -65,7 +65,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
     }
 
 
-    public StressResult incrementalResult(StressResult originalResult, StressResult presentResult) {
+    private StressResult incrementalResult(StressResult originalResult, StressResult presentResult) {
         if (presentResult == null) {
             return null;
         } else if (originalResult != null && originalResult.getTotalCounter().get() == presentResult.getTotalCounter().get()) {
@@ -90,7 +90,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
         }
     }
 
-    public StressResult clone(StressResult stressResult) {
+    private StressResult clone(StressResult stressResult) {
         return StressResult.builder().threadCount(stressResult.getThreadCount())
                 .failedCounter(new AtomicInteger(stressResult.getFailedCounter().get()))
                 .totalCounter(new AtomicInteger(stressResult.getTotalCounter().get()))

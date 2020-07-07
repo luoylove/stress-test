@@ -1,5 +1,7 @@
 package com.ly.core;
 
+import com.ly.core.enums.ValidateRule;
+import com.ly.core.enums.ValidateTarget;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -34,4 +36,27 @@ public class StressRequest<T> implements Serializable {
      * 单个线程执行次数
      */
     private int concurrencyCount;
+
+    /**
+     * 断言
+     */
+    private Validate validate;
+
+    /**
+     * 验证模式
+     */
+    @Data
+    @Builder
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Validate{
+        /** 匹配规则 */
+        private ValidateRule rule;
+
+        /** 断言对象 */
+        private ValidateTarget target;
+
+        /**断言值*/
+        private Object data;
+    }
 }
