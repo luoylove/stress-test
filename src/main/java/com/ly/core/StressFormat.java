@@ -10,19 +10,26 @@ import java.util.stream.Collectors;
  */
 public class StressFormat {
     public static void format(StressResult result) {
-        //时长
-        Double totalTime = getTotalTimeToMs(result);
+        //所有task运行时长
+        Double totalTaskTime = getTotalTimeToMs(result);
         //总次数
         int totalCount = result.getTotalCounter().get();
+        //错误数
+        int totalFailedCount = result.getFailedCounter().get();
 
-        if (totalTime <= 0 && totalCount<= 0) {
+        if (totalTaskTime <= 0 && totalCount<= 0) {
             return;
         }
 
+        //物理实际耗时
+        Double totalPhysicsTime = getTotalPhysicsTime(totalTaskTime, result.getThreadCount());
+
+        Double failedRate = getFailedRate(totalCount, totalFailedCount);
+
+        Double aveTime = getAveTime(totalCount, totalTaskTime);
+
         //tps 四舍五入
-        Double tps = new BigDecimal(String.valueOf(totalCount))
-                .divide(new BigDecimal(String.valueOf(totalTime / 1000)), 4, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+        Double tps = getTps(totalCount, totalPhysicsTime);
 
         List<Long> sortResult = sort(result.getEveryTimes());
 
@@ -40,10 +47,13 @@ public class StressFormat {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("并发数:").append(result.getThreadCount()).append("\n")
                 .append("总执行次数:").append(totalCount).append("\n")
-                .append("总耗时:").append(totalTime).append(" ms").append("\n")
+                .append("总耗时:").append(totalPhysicsTime).append(" ms").append("\n")
+                .append("错误数: ").append(totalFailedCount).append("\n")
+                .append("错误率: ").append(failedRate).append("%").append("\n")
                 .append("TPS:").append(tps).append("\n")
                 .append("最小耗时:").append(minTime).append(" ms").append("\n")
                 .append("最大耗时:").append(maxTime).append(" ms").append("\n")
+                .append("平均耗时:").append(aveTime).append(" ms").append("\n")
                 .append("50%的耗时在").append(count_50).append(" ms以内").append("\n")
                 .append("60%的耗时在").append(count_60).append(" ms以内").append("\n")
                 .append("70%的耗时在").append(count_70).append(" ms以内").append("\n")
@@ -55,12 +65,36 @@ public class StressFormat {
         System.out.println(stringBuilder.toString());
     }
 
+    private static Double getTotalPhysicsTime(Double totalTaskTime, int threadCount) {
+        return new BigDecimal(String.valueOf(totalTaskTime))
+                .divide(new BigDecimal(String.valueOf(threadCount)), 4, BigDecimal.ROUND_HALF_UP)
+                .doubleValue();
+    }
+
+    private static Double getAveTime(int totalCount, Double totalTaskTime) {
+        return new BigDecimal(String.valueOf(totalTaskTime))
+                .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
+                .doubleValue();
+    }
+
+    private static Double getTps(int totalCount, Double totalPhysicsTime) {
+        return new BigDecimal(String.valueOf(totalCount))
+                .divide(new BigDecimal(String.valueOf(totalPhysicsTime / 1000)), 4, BigDecimal.ROUND_HALF_UP)
+                .doubleValue();
+    }
+
+    private static Double getFailedRate(int totalCount, int totalFailed) {
+        if (totalFailed <= 0) {
+            return 0.00;
+        }
+        return new BigDecimal(String.valueOf(totalFailed))
+                .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
+                .doubleValue() * 100;
+    }
 
     private static Double getTotalTimeToMs(StressResult result) {
         long sum = result.getEveryTimes().stream().mapToLong((x) -> (long) x).sum();
-        return new BigDecimal(String.valueOf(sum))
-                .divide(new BigDecimal(String.valueOf(1000 * 1000)), 4, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+        return nsToMs(sum);
     }
 
     private static Double nsToMs(Long time) {
