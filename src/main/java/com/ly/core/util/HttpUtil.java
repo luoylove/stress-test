@@ -25,6 +25,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
@@ -60,28 +61,11 @@ public class HttpUtil {
     private final static int SOCKET_TIMEOUT = 5000;
 
     /**
-     * 全局保存一个httpClient 提高性能
+     * http请求客户端，方法中请勿close，否则无法正常使用
      */
-    private CloseableHttpClient httpClient;
+    private static volatile CloseableHttpClient httpClient;
 
-    private HttpUtil() {
-        createHttpClient();
-    }
-
-    private static HttpUtil httpUtil = null;
-
-    public static HttpUtil getInstance() {
-        if (httpUtil == null) {
-            synchronized (HttpUtil.class) {
-                if (httpUtil == null) {
-                    httpUtil = new HttpUtil();
-                }
-            }
-        }
-        return httpUtil;
-    }
-
-    private void createHttpClient() {
+    static {
         //设置Keep alive 当默认没有timeout时候设置成60s
         ConnectionKeepAliveStrategy strategy = (response, context) -> {
             HeaderElementIterator it = new BasicHeaderElementIterator
@@ -116,6 +100,15 @@ public class HttpUtil {
                 .setConnectionManager(connectionManager)
                 .setKeepAliveStrategy(strategy)
                 .build();
+
+        //虚拟机关闭时关闭请求客户端
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            try {
+                HttpUtil.httpClient.close();
+            } catch (IOException e) {
+               e.printStackTrace();
+            }
+        }));
     }
 
     /**
@@ -146,7 +139,7 @@ public class HttpUtil {
     }
 
 
-    public HttpResponse get(HttpRequestParams req) throws Exception {
+    public static HttpResponse get(HttpRequestParams req) throws Exception {
         return get(req, "utf-8");
     }
 
@@ -156,7 +149,7 @@ public class HttpUtil {
      * @param req
      * @return
      */
-    public HttpResponse get(HttpRequestParams req, String charset) throws Exception {
+    public static HttpResponse get(HttpRequestParams req, String charset) throws Exception {
         HttpResponse response = new HttpResponse();
 
         URIBuilder builder = new URIBuilder(req.getUrl());
@@ -202,7 +195,7 @@ public class HttpUtil {
      * @param req
      * @return
      */
-    public HttpResponse post4Json(HttpRequestJson req) throws Exception {
+    public static HttpResponse post4Json(HttpRequestJson req) throws Exception {
         HttpResponse res = new HttpResponse();
         HttpPost post = new HttpPost(req.getUrl());
 
@@ -222,18 +215,17 @@ public class HttpUtil {
         post.setEntity(body);
 
         org.apache.http.HttpResponse httpResponse = httpClient.execute(post);
-
         int statusCode = httpResponse.getStatusLine().getStatusCode();
         res.setStatusCode(statusCode);
         res.setBody(EntityUtils.toString(httpResponse.getEntity(), "UTF-8"));
         return res;
     }
 
-    public HttpResponse post4Para(HttpRequestParams req) throws Exception {
+    public static HttpResponse post4Para(HttpRequestParams req) throws Exception {
         return post4Para(req, CONNECT_TIMEOUT, CONNECTION_REQUEST_TIMEOUT, SOCKET_TIMEOUT);
     }
 
-    public HttpResponse post4Para(HttpRequestParams req, int connectTimeout, int connectionRequestTimeout, int socketTimeout) throws Exception {
+    public static HttpResponse post4Para(HttpRequestParams req, int connectTimeout, int connectionRequestTimeout, int socketTimeout) throws Exception {
         HttpResponse res = new HttpResponse();
 
         URIBuilder builder = new URIBuilder(req.getUrl());
@@ -279,7 +271,7 @@ public class HttpUtil {
      * @param req
      * @return
      */
-    public HttpResponse put(HttpRequestParams req) throws Exception {
+    public static HttpResponse put(HttpRequestParams req) throws Exception {
         HttpResponse response = new HttpResponse();
 
         URIBuilder builder = new URIBuilder(req.getUrl());
@@ -320,7 +312,7 @@ public class HttpUtil {
      * @return
      * @throws Exception
      */
-    public HttpResponse delete(HttpRequestParams req) throws Exception {
+    public static HttpResponse delete(HttpRequestParams req) throws Exception {
         HttpResponse response = new HttpResponse();
 
         URIBuilder builder = new URIBuilder(req.getUrl());

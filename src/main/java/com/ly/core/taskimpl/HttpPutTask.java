@@ -19,6 +19,6 @@ public class HttpPutTask extends AbstractHttpTask{
 
     @Override
     public HttpResponse doTask() throws Throwable {
-        return HttpUtil.getInstance().put(params);
+        return HttpUtil.put(params);
     }
 }

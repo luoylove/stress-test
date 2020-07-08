@@ -19,6 +19,6 @@ public class HttpPostFormTask extends AbstractHttpTask{
 
     @Override
     public HttpResponse doTask() throws Throwable {
-        return HttpUtil.getInstance().post4Para(params);
+        return HttpUtil.post4Para(params);
     }
 }

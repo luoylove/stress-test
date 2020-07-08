@@ -19,6 +19,6 @@ public class HttpPostJsonTask extends AbstractHttpTask{
 
     @Override
     public HttpResponse doTask() throws Throwable {
-        return HttpUtil.getInstance().post4Json(params);
+        return HttpUtil.post4Json(params);
     }
 }

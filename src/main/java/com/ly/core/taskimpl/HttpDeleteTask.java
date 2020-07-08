@@ -19,6 +19,6 @@ public class HttpDeleteTask extends AbstractHttpTask{
 
     @Override
     public HttpResponse doTask() throws Throwable {
-        return HttpUtil.getInstance().delete(params);
+        return HttpUtil.delete(params);
     }
 }
