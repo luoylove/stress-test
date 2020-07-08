@@ -1,10 +1,6 @@
 package com.ly.core;
 
-import com.ly.core.util.HttpResponse;
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
 
 /**
  * 线程主体
@@ -13,14 +9,14 @@ import java.util.regex.Pattern;
  * @Date: 2020/6/9 13:36.
  */
 public class StressWorker<T> implements Runnable{
-    private StressRequest<T> stressRequest;
+    private List<StressTask> stressTasks;
 
     private StressContext stressContext;
 
     private StressResult stressResult;
 
-    public StressWorker(StressRequest<T> stressRequest, StressContext stressContext, StressResult stressResult) {
-        this.stressRequest = stressRequest;
+    public StressWorker(List<StressTask> stressTasks, StressContext stressContext, StressResult stressResult) {
+        this.stressTasks = stressTasks;
         this.stressContext = stressContext;
         this.stressResult = stressResult;
     }
@@ -42,7 +38,7 @@ public class StressWorker<T> implements Runnable{
 
     private void doRun() {
         while (true) {
-            for(StressTask<T> stressTask : stressRequest.getTasks()) {
+            for(StressTask<T> stressTask : stressTasks) {
                 if(stressContext.isTimeStage()) {
                     return;
                 }
@@ -62,11 +58,6 @@ public class StressWorker<T> implements Runnable{
                     Long everyTime;
                     if (!isFailed) {
                         everyTime = System.nanoTime() - startTime;
-                        //断言
-                        boolean isValidate = doValidate(stressRequest.getValidate(), res);
-                        if (!isValidate) {
-                            stressResult.getFailedCounter().getAndIncrement();
-                        }
                     } else {
                         everyTime = endTime - startTime;
                     }
@@ -78,51 +69,6 @@ public class StressWorker<T> implements Runnable{
             if (stressContext.isCountStage()) {
                 return;
             }
-        }
-    }
-
-    private boolean doValidate(StressRequest.Validate validate, Object res) {
-        if (validate == null) {
-            return true;
-        }
-
-        switch (validate.getTarget()) {
-            case RESPONSE_CODE:
-                if (res instanceof HttpResponse) {
-                    HttpResponse httpResponse = (HttpResponse) res;
-                    return validateRule(validate, String.valueOf(httpResponse.getStatusCode()));
-                }
-            case RESPONSE_VALUE:
-                if (res instanceof HttpResponse) {
-                    HttpResponse httpResponse = (HttpResponse) res;
-                    return validateRule(validate, httpResponse.getBody());
-                } else {
-                    return validateRule(validate, String.valueOf(res));
-                }
-            default:
-                return false;
-        }
-    }
-
-    private static boolean validateRule(StressRequest.Validate validate, String res) {
-        if(validate == null || StringUtils.isBlank(res)) {
-            return true;
-        }
-        switch (validate.getRule()) {
-            case REGEX:
-                Pattern pattern = Pattern.compile(String.valueOf(validate.getData()));
-                Matcher matcher = pattern.matcher(res);
-                return matcher.matches();
-            case EQUALS:
-                return String.valueOf(validate.getData()).equals(res);
-            case CONTAIN:
-                return res.contains(String.valueOf(validate.getData()));
-            case NOT_EQUALS:
-                return !String.valueOf(validate.getData()).equals(res);
-            case NOT_CONTAIN:
-                return !res.contains(String.valueOf(validate.getData()));
-            default:
-                return false;
         }
     }
 }

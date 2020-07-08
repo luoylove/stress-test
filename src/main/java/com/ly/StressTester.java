@@ -1,6 +1,7 @@
 package com.ly;
 
 import com.google.common.collect.Lists;
+import com.ly.core.AsyncStressValidateMonitor;
 import com.ly.core.StressContext;
 import com.ly.core.StressFormat;
 import com.ly.core.StressRequest;
@@ -30,19 +31,14 @@ public class StressTester {
         return context;
     }
 
-    public Boolean getFinish() {
-        return isFinish;
-    }
-
     private StressContext context;
-
-    private Boolean isFinish = false;
 
     public StressResult test(StressRequest request) {
         this.context = StressContext.builder().startBarrier(new CyclicBarrier(request.getThreadCount()))
                 .endLatch(new CountDownLatch(request.getThreadCount()))
                 .isTimeStage(false)
                 .isCountStage(request.getConcurrencyCount() > 0)
+                .isFinish(false)
                 .build();
 
         StressResult stressResult = StressResult.builder().everyData(Lists.newCopyOnWriteArrayList())
@@ -60,7 +56,7 @@ public class StressTester {
 
         if (request.getConcurrencyCount() <= 0) {
             for (int i = 0; i < threadCount; i++) {
-                StressWorker worker = new StressWorker(request, context, stressResult);
+                StressWorker worker = new StressWorker(request.getTasks(), context, stressResult);
                 workers.add(worker);
             }
         } else {
@@ -68,8 +64,7 @@ public class StressTester {
             //构建works, works与workerTasks长度一致
             for(List<StressTask> tasks : workerTasks) {
                 //每一个worker都有一个任务集合,集合大小为每个线程执行次数
-                request.setTasks(tasks);
-                StressWorker worker = new StressWorker(request, context, stressResult);
+                StressWorker worker = new StressWorker(tasks, context, stressResult);
                 workers.add(worker);
             }
         }
@@ -110,11 +105,10 @@ public class StressTester {
 
             try {
                 context.getEndLatch().await();
-                this.isFinish = true;
+                context.setIsFinish(true);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             threadPool.shutdown();
         });
 
@@ -178,10 +172,12 @@ public class StressTester {
                         .build();
         StressTester tester = new StressTester();
         StressResult stressResult = tester.test(stressRequest);
+
+        AsyncStressValidateMonitor.validateMonitor(stressRequest, tester.getContext(), stressResult);
         for(;;) {
             StressFormat.format(stressResult);
             Thread.sleep(1000);
-            if (tester.getFinish()){
+            if (tester.getContext().getIsFinish()){
                 ThreadPoolUtil.shutdown();
                 StressFormat.format(stressResult);
                 return;

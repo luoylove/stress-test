@@ -30,4 +30,7 @@ public class StressContext {
 
     /** 是否有运行次数限制,如果运行次数大于0,为true */
     private boolean isCountStage;
+
+    /** 是否运行完成 **/
+    private Boolean isFinish ;
 }

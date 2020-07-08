@@ -6,7 +6,7 @@ package com.ly.core.enums;
  */
 public enum ValidateRule {
     /** 包含 */
-    CONTAIN,
+    CONTAINS,
     /** 等于 */
     EQUALS,
     /** 正则匹配 */
