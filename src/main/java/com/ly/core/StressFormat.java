@@ -17,19 +17,18 @@ public class StressFormat {
         //错误数
         int totalFailedCount = result.getFailedCounter().get();
 
-        if (totalTaskTime <= 0 && totalCount<= 0) {
+        if (totalTaskTime <= 0 || totalCount<= 0) {
             return;
         }
 
-        //物理实际耗时
-        Double totalPhysicsTime = getTotalPhysicsTime(totalTaskTime, result.getThreadCount());
+        Double totalTime = nsToMs(result.getTotalTime());
 
-        Double failedRate = getFailedRate(totalCount, totalFailedCount) * 100;
+        Double failedRate = getFailedRate(totalCount, totalFailedCount);
 
         Double aveTime = getAveTime(totalCount, totalTaskTime);
 
-        //tps 四舍五入
-        Double tps = getTps(totalCount, totalPhysicsTime);
+        //tps 四舍五入  总线程 * 总请求/ 总时间
+        Double tps = getTps(result.getThreadCount(), totalCount, totalTaskTime);
 
         List<Long> sortResult = sort(result.getEveryTimes());
 
@@ -47,7 +46,7 @@ public class StressFormat {
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("并发数:").append(result.getThreadCount()).append("\n")
                 .append("总执行次数:").append(totalCount).append("\n")
-                .append("总耗时:").append(totalPhysicsTime).append(" ms").append("\n")
+                .append("总耗时:").append(totalTime).append(" ms").append("\n")
                 .append("错误数: ").append(totalFailedCount).append("\n")
                 .append("错误率: ").append(failedRate).append("%").append("\n")
                 .append("TPS:").append(tps).append("\n")
@@ -65,21 +64,15 @@ public class StressFormat {
         System.out.println(stringBuilder.toString());
     }
 
-    private static Double getTotalPhysicsTime(Double totalTaskTime, int threadCount) {
-        return new BigDecimal(String.valueOf(totalTaskTime))
-                .divide(new BigDecimal(String.valueOf(threadCount)), 4, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
-    }
-
     private static Double getAveTime(int totalCount, Double totalTaskTime) {
         return new BigDecimal(String.valueOf(totalTaskTime))
                 .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
     }
 
-    private static Double getTps(int totalCount, Double totalPhysicsTime) {
-        return new BigDecimal(String.valueOf(totalCount))
-                .divide(new BigDecimal(String.valueOf(totalPhysicsTime / 1000)), 4, BigDecimal.ROUND_HALF_UP)
+    private static Double getTps(int threadCount, int totalCount, Double totalTaskTime) {
+        return new BigDecimal(String.valueOf(totalCount * threadCount))
+                .divide(new BigDecimal(String.valueOf(totalTaskTime / 1000)), 4, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
     }
 
@@ -89,7 +82,7 @@ public class StressFormat {
         }
         return new BigDecimal(String.valueOf(totalFailed))
                 .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
-                .doubleValue();
+                .multiply(new BigDecimal("100")).doubleValue();
     }
 
     private static Double getTotalTimeToMs(StressResult result) {
@@ -111,5 +104,9 @@ public class StressFormat {
 
     private static List<Long> sort(List<Long> collection) {
         return collection.stream().sorted().collect(Collectors.toList());
+    }
+
+    public static void main(String[] args) {
+        System.out.println(getFailedRate(1570, 1340));
     }
 }

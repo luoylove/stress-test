@@ -1,6 +1,9 @@
 package com.ly.core;
 
+import com.google.common.collect.Lists;
+
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 线程主体
@@ -13,12 +16,41 @@ public class StressWorker<T> implements Runnable{
 
     private StressContext stressContext;
 
-    private StressResult stressResult;
+    private List<Long> localTime;
 
-    public StressWorker(List<StressTask> stressTasks, StressContext stressContext, StressResult stressResult) {
+    private List<Object> localData;
+
+    private AtomicInteger localTotalCount;
+
+    /**内部只有一个线程在执行任务, list线程安全
+     * context中 CopyOnWriteArrayList是一个写线程安全list,
+     * 虽然比Collections.synchronizedList()读写全加锁性能好, 但是写线程安全实现模式是copy原来的list,
+     * 当队列过长, 有oom风险,且每个线程竞争同步list有性能损耗
+     * 所有内部维护一个同步list,通过辅助线程进行同步到context中,只有该工作线程与辅助线程竞争
+     * 同时辅助线程进行list清除,防止内存占用过多
+     * */
+    public StressWorker(List<StressTask> stressTasks, StressContext stressContext) {
         this.stressTasks = stressTasks;
         this.stressContext = stressContext;
-        this.stressResult = stressResult;
+        this.localTime = Lists.newCopyOnWriteArrayList();
+        this.localData = Lists.newCopyOnWriteArrayList();
+        this.localTotalCount = new AtomicInteger();
+    }
+
+    public List<Long> getLocalTime() {
+        return localTime;
+    }
+
+    public Long getLocalTimeSum() {
+        return localTime.stream().mapToLong(x -> x).sum();
+    }
+
+    public List<Object> getLocalData() {
+        return localData;
+    }
+
+    public int getLocalTotalCount() {
+        return localTotalCount.get();
     }
 
     @Override
@@ -51,19 +83,19 @@ public class StressWorker<T> implements Runnable{
                 } catch (Throwable throwable) {
                     endTime = System.nanoTime();
                     throwable.printStackTrace();
-                    //如果执行失败记录时间点并且失败+1
-                    stressResult.getFailedCounter().getAndIncrement();
+                    //如果执行失败把错误保存
+                    localData.add(throwable);
                     isFailed = true;
                 } finally {
                     Long everyTime;
                     if (!isFailed) {
                         everyTime = System.nanoTime() - startTime;
+                        localData.add(res);
                     } else {
                         everyTime = endTime - startTime;
                     }
-                    stressResult.getTotalCounter().getAndIncrement();
-                    stressResult.getEveryData().add(res);
-                    stressResult.getEveryTimes().add(everyTime);
+                    localTotalCount.getAndIncrement();
+                    localTime.add(everyTime);
                 }
             }
             if (stressContext.isCountStage()) {

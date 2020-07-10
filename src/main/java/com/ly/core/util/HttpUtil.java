@@ -61,9 +61,9 @@ public class HttpUtil {
     private final static int SOCKET_TIMEOUT = 5000;
 
     /**
-     * http请求客户端，方法中请勿close，否则无法正常使用
+     * http请求客户端
      */
-    private static volatile CloseableHttpClient httpClient;
+    private static CloseableHttpClient httpClient;
 
     static {
         //设置Keep alive 当默认没有timeout时候设置成60s
@@ -100,6 +100,13 @@ public class HttpUtil {
                 .setConnectionManager(connectionManager)
                 .setKeepAliveStrategy(strategy)
                 .build();
+
+        try {
+            HttpGet httpGet = new HttpGet(new URIBuilder("http://www.baidu.com").build());
+            httpClient.execute(httpGet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         //虚拟机关闭时关闭请求客户端
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

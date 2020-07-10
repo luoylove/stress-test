@@ -39,4 +39,9 @@ public class StressResult<T> implements Serializable {
      * 线程数量
      */
     private int threadCount;
+
+    /**
+     * 总运行时间
+     */
+    private Long totalTime;
 }

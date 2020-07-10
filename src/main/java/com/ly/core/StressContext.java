@@ -32,5 +32,8 @@ public class StressContext {
     private boolean isCountStage;
 
     /** 是否运行完成 **/
-    private Boolean isFinish ;
+    private boolean isFinish ;
+
+    /** 监控线程是否运行完成 */
+    private boolean isMonitorFinish;
 }

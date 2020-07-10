@@ -36,7 +36,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                     Thread.sleep(1000);
                     StressResult incrementalResult;
 
-                    if (!tester.getContext().getIsFinish()) {
+                    if (!tester.getContext().isFinish()) {
                         incrementalResult = incrementalResult(originalResult, stressResult);
                         originalResult = clone(stressResult);
                         System.out.println("发送数据:" + incrementalResult);
