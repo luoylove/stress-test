@@ -1,12 +1,12 @@
 package com.ly.core.tcp;
 
+import com.google.common.collect.Lists;
 import com.ly.StressTester;
 import com.ly.core.StressRequest;
 import com.ly.core.StressResult;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -39,12 +39,17 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                     if (!tester.getContext().isFinish()) {
                         incrementalResult = incrementalResult(originalResult, stressResult);
                         originalResult = clone(stressResult);
+                        if (incrementalResult == null) {
+                            continue;
+                        }
                         System.out.println("发送数据:" + incrementalResult);
-                        ctx.writeAndFlush(incrementalResult == null ? "" : incrementalResult);
+                        ctx.writeAndFlush(incrementalResult);
                     } else {
                         incrementalResult = incrementalResult(originalResult, stressResult);
-                        System.out.println("发送数据:" + incrementalResult);
-                        ctx.writeAndFlush(incrementalResult == null ? "" : incrementalResult);
+                        if (incrementalResult != null) {
+                            System.out.println("发送数据:" + incrementalResult);
+                            ctx.writeAndFlush(incrementalResult);
+                        }
                         ctx.writeAndFlush(DOWN_FLAG);
                         System.out.println("该机器压测总数据: " + stressResult);
                         break;
@@ -66,7 +71,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
 
 
     private StressResult incrementalResult(StressResult originalResult, StressResult presentResult) {
-        if (presentResult == null) {
+        if (presentResult == null || presentResult.getTotalCounter().get() == 0) {
             return null;
         } else if (originalResult != null && originalResult.getTotalCounter().get() == presentResult.getTotalCounter().get()) {
             return null;
@@ -75,8 +80,8 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
         } else  {
             int originalSize = originalResult.getEveryTimes().size();
             int presentSize = presentResult.getEveryTimes().size();
-            List<Long> everyTimes = new ArrayList<>(presentSize - originalSize);
-            List<Object> everyData = new ArrayList<>(presentSize - originalSize);
+            List<Long> everyTimes = Lists.newArrayListWithCapacity(presentSize - originalSize);
+            List<Object> everyData = Lists.newArrayListWithCapacity(presentSize - originalSize);
             for(int i = originalSize; i < presentSize; i++ ) {
                 everyTimes.add((Long) presentResult.getEveryTimes().get(i));
                 everyData.add(presentResult.getEveryData().get(i));
@@ -85,6 +90,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                     .failedCounter(new AtomicInteger(presentResult.getFailedCounter().get() - originalResult.getFailedCounter().get()))
                     .threadCount(presentResult.getThreadCount())
                     .everyTimes(everyTimes)
+                    .totalTime(presentResult.getTotalTime())
                     .everyData(everyData)
                     .build();
         }
@@ -96,6 +102,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Objec
                 .totalCounter(new AtomicInteger(stressResult.getTotalCounter().get()))
                 .everyData((List<Object>) stressResult.getEveryData().stream().collect(Collectors.toList()))
                 .everyTimes((List<Long>) stressResult.getEveryTimes().stream().collect(Collectors.toList()))
+                .totalTime(stressResult.getTotalTime())
                 .build();
     }
 }

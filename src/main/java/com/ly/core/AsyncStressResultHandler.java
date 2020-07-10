@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 public class AsyncStressResultHandler implements Runnable{
 
     /** 监控间隔 */
-    private static final Long MONITOR_TIME_INTERVAL = 2 * 1000L;
+    private static final Long MONITOR_TIME_INTERVAL = 100L;
 
     private StressRequest request;
 

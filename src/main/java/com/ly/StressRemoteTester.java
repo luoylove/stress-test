@@ -31,7 +31,6 @@ public class StressRemoteTester {
 
         ThreadPoolUtil.execute(() -> {
             while (true) {
-                System.out.println("检查是否执行完..");
                 if (nettyClient.isShutdown()) {
                     nettyClient.shutdown();
                     isShutdown = true;
@@ -54,7 +53,6 @@ public class StressRemoteTester {
         StressRemoteTester.remoteTest(stressRequest, "localhost:9998");
 
         for(;;) {
-            System.out.println("format");
             StressFormat.format(StressRemoteContext.get());
             if (isShutdown) {
                 ThreadPoolUtil.shutdown();

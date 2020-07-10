@@ -13,7 +13,6 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Objec
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("接收数据: " + msg);
         if (msg instanceof String) {
             if (NettyServerChannelHandler.DOWN_FLAG.equals(msg)) {
                 ctx.disconnect();
@@ -25,6 +24,10 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Objec
 
         if (msg instanceof StressResult) {
             StressResult remoteResult = (StressResult) msg;
+            if (remoteResult.getTotalCounter().get() <= 0) {
+                return;
+            }
+            System.out.println("接收result: " + remoteResult);
             StressRemoteContext.calculateResult(remoteResult);
         }
     }

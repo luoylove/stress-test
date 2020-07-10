@@ -39,7 +39,8 @@ public class NettyServer {
                         }
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
-                    .option(ChannelOption.SO_KEEPALIVE, true);
+                    //心跳
+                    .option(ChannelOption.SO_KEEPALIVE, false);
             ChannelFuture channelFuture = serverBoot.bind(port).sync();
             if(!channelFuture.isSuccess()){
                 throw new RuntimeException("Server服务启动失败");

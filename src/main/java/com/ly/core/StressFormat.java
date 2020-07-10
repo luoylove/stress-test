@@ -77,20 +77,24 @@ public class StressFormat {
     }
 
     private static Double getFailedRate(int totalCount, int totalFailed) {
-        if (totalFailed <= 0) {
-            return 0.00;
-        }
         return new BigDecimal(String.valueOf(totalFailed))
                 .divide(new BigDecimal(String.valueOf(totalCount)), 4, BigDecimal.ROUND_HALF_UP)
                 .multiply(new BigDecimal("100")).doubleValue();
     }
 
     private static Double getTotalTimeToMs(StressResult result) {
-        long sum = result.getEveryTimes().stream().mapToLong((x) -> (long) x).sum();
-        return nsToMs(sum);
+        if (result.getEveryTimes().size() > 0) {
+            long sum = result.getEveryTimes().stream().mapToLong((x) -> (long) x).sum();
+            return nsToMs(sum);
+        } else {
+            return 0d;
+        }
     }
 
     private static Double nsToMs(Long time) {
+        if (time == null || time <= 0) {
+            return 0d;
+        }
         return new BigDecimal(String.valueOf(time))
                 .divide(new BigDecimal(String.valueOf(1000 * 1000)), 4, BigDecimal.ROUND_HALF_UP)
                 .doubleValue();
