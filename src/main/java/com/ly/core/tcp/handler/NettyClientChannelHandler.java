@@ -15,9 +15,11 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Invocation msg) throws Exception {
+        //msg 接收服务端数据
+        System.out.println("接收数据:" + msg);
         switch (msg.getType()) {
             case BUSINESS:
-                doBusiness(ctx, msg);
+                doBusiness(msg);
                 break;
             case DOWN:
                 doDown(ctx);
@@ -36,11 +38,19 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
         //Netty 提供了 IdleStateHandler 处理器，提供空闲检测的功能，在 Channel 的读或者写空闲时间太长时，将会触发一个 IdleStateEvent 事件
         if (evt instanceof IdleStateEvent) {
             Invocation invocation = Invocation.builder().type(Invocation.Type.HEARTBEAT).build();
-            System.out.println("heartbeat: " + invocation);
+            System.out.println("heartbeat send: " + invocation);
             ctx.writeAndFlush(invocation);
         } else {
             super.userEventTriggered(ctx, evt);
         }
+    }
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        // 发起重连
+//        nettyClient.reconnect();
+        // 继续触发事件
+        super.channelInactive(ctx);
     }
 
     private void doDown(ChannelHandlerContext ctx) {
@@ -50,16 +60,14 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
         return;
     }
 
-    private void doBusiness(ChannelHandlerContext ctx, Invocation msg) {
+    private void doBusiness(Invocation msg) {
         StressResult remoteResult = (StressResult) msg.getMessage();
         if (remoteResult.getTotalCounter().get() <= 0) {
             return;
         }
-        System.out.println("接收result: " + remoteResult);
         StressRemoteContext.calculateResult(remoteResult);
     }
 
     private void doHeartbeat(Invocation msg) {
-        System.out.println("heartbeat: " + msg);
     }
 }

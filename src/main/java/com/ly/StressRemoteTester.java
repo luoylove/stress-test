@@ -20,24 +20,31 @@ import java.util.List;
  */
 public class StressRemoteTester {
 
-    public static Boolean isShutdown = false;
+    public static Boolean isAllShutdown = false;
 
     public static void remoteTest(StressRequest request, String...addresses) throws Exception {
+
+        List<NettyClient> nettyClients = Lists.newArrayListWithCapacity(addresses.length);
         Invocation invocation = Invocation.builder().message(request).type(Invocation.Type.BUSINESS).build();
-        NettyClient nettyClient = new NettyClient();
         for(String address : addresses) {
             String[] add = StringUtils.split(address, ":");
-            nettyClient.start(add[0], Integer.valueOf(add[1]));
+            NettyClient nettyClient = new NettyClient(add[0], Integer.valueOf(add[1]));
+            nettyClients.add(nettyClient);
+            nettyClient.start();
             nettyClient.send(invocation);
         }
 
         ThreadPoolUtil.execute(() -> {
             while (true) {
-                if (nettyClient.isShutdown()) {
-                    nettyClient.shutdown();
-                    isShutdown = true;
-                    System.out.println("退出....");
-                    return;
+                for(NettyClient nettyClient : nettyClients) {
+                    if (nettyClient.isShutdown()) {
+                        nettyClient.shutdown();
+                        nettyClients.remove(nettyClient);
+                    }
+                    if (nettyClients.size() == 0) {
+                        isAllShutdown = true;
+                        return;
+                    }
                 }
                 try {
                     Thread.sleep(1000);
@@ -55,7 +62,7 @@ public class StressRemoteTester {
 
         for(;;) {
             StressFormat.format(StressRemoteContext.get());
-            if (isShutdown) {
+            if (isAllShutdown) {
                 ThreadPoolUtil.shutdown();
                 return;
             }
