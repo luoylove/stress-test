@@ -1,6 +1,7 @@
-package com.ly.core.tcp;
+package com.ly.core.tcp.client;
 
-import com.ly.core.StressRequest;
+import com.ly.core.tcp.handler.NettyClientChannelHandler;
+import com.ly.core.tcp.message.Invocation;
 import com.ly.core.tcp.serialize.KryoDataDecoder;
 import com.ly.core.tcp.serialize.KryoDataEncoder;
 import io.netty.bootstrap.Bootstrap;
@@ -10,12 +11,15 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 
 /**
  * @Author: luoy
  * @Date: 2020/6/28 15:59.
  */
 public class NettyClient {
+
+    public static final int READ_TIME_OUT = 5;
 
     private Channel channel;
 
@@ -30,6 +34,8 @@ public class NettyClient {
                     @Override
                     protected void initChannel(NioSocketChannel channel) throws Exception {
                         channel.pipeline()
+                                //空闲检查,触发IdleStateEvent事件,捕获后发送一次心跳
+                                .addLast(new IdleStateHandler(READ_TIME_OUT, 0, 0))
                                 .addLast("decoder", new KryoDataDecoder())
                                 .addLast("encoder", new KryoDataEncoder())
                                 .addLast("handler", new NettyClientChannelHandler());
@@ -44,11 +50,11 @@ public class NettyClient {
         this.channel = channelFuture.channel();
     }
 
-    public void send(StressRequest request) {
+    public void send(Invocation invocation) {
         if (channel == null) {
             throw new RuntimeException("client端未连接");
         }
-        channel.writeAndFlush(request);
+        channel.writeAndFlush(invocation);
     }
 
     public boolean isShutdown() {

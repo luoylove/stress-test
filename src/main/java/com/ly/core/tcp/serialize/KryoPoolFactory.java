@@ -6,9 +6,8 @@ import com.esotericsoftware.kryo.pool.KryoPool;
 import com.ly.core.StressRequest;
 import com.ly.core.StressResult;
 import com.ly.core.StressTask;
+import com.ly.core.tcp.message.Invocation;
 import org.objenesis.strategy.StdInstantiatorStrategy;
-
-import java.util.List;
 
 /**
  * @Author: luoy
@@ -25,9 +24,8 @@ public class KryoPoolFactory {
 //        //把已知的结构注册到Kryo注册器里面，提高序列化/反序列化效率
         kryo.register(StressResult.class);
         kryo.register(StressRequest.class);
-        kryo.register(List.class);
         kryo.register(StressTask.class);
-        kryo.register(String.class);
+        kryo.register(Invocation.class);
         kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(
                 new StdInstantiatorStrategy()));
         return kryo;

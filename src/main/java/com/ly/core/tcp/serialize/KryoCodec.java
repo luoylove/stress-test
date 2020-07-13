@@ -1,6 +1,7 @@
 package com.ly.core.tcp.serialize;
 
 import com.google.common.io.Closer;
+import com.ly.core.tcp.message.Invocation;
 import io.netty.buffer.ByteBuf;
 
 import java.io.ByteArrayInputStream;
@@ -14,7 +15,7 @@ import java.io.IOException;
 public class KryoCodec {
     private static Closer closer = Closer.create();
 
-    public static void encode(final ByteBuf out, final Object message) throws IOException {
+    public static void encode(final ByteBuf out, final Invocation message) throws IOException {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             closer.register(byteArrayOutputStream);

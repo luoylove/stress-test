@@ -2,12 +2,12 @@ package com.ly.core;
 
 import com.ly.core.enums.ValidateRule;
 import com.ly.core.enums.ValidateTarget;
+import com.ly.core.tcp.message.Message;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
@@ -18,7 +18,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class StressRequest<T> implements Serializable {
+public class StressRequest<T> implements Message {
     /**所有需要运行的task,少于总运行数循环执行*/
     private List<StressTask<T>> tasks;
 

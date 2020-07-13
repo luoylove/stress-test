@@ -1,6 +1,6 @@
 package com.ly;
 
-import com.ly.core.tcp.NettyServer;
+import com.ly.core.tcp.server.NettyServer;
 
 /**
  * @Author: luoy

@@ -1,5 +1,6 @@
-package com.ly.core.tcp;
+package com.ly.core.tcp.server;
 
+import com.ly.core.tcp.handler.NettyServerChannelHandler;
 import com.ly.core.tcp.serialize.KryoDataDecoder;
 import com.ly.core.tcp.serialize.KryoDataEncoder;
 import io.netty.bootstrap.ServerBootstrap;
@@ -38,9 +39,10 @@ public class NettyServer {
                                     .addLast("handler", new NettyServerChannelHandler());
                         }
                     })
+                    //理论上来说服务端就一个客户端连上来发送脚本 accept 队列的大小可设置小点
                     .option(ChannelOption.SO_BACKLOG, 128)
                     //心跳
-                    .option(ChannelOption.SO_KEEPALIVE, false);
+                    .option(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture channelFuture = serverBoot.bind(port).sync();
             if(!channelFuture.isSuccess()){
                 throw new RuntimeException("Server服务启动失败");

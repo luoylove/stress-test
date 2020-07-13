@@ -1,11 +1,11 @@
 package com.ly.core;
 
+import com.ly.core.tcp.message.Message;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class StressResult<T> implements Serializable {
+public class StressResult<T> implements Message {
     /** 统计任务执行失败数量 */
     private AtomicInteger failedCounter;
 
