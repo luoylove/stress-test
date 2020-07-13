@@ -31,6 +31,9 @@ public class StressRemoteTester {
             NettyClient nettyClient = new NettyClient(add[0], Integer.valueOf(add[1]));
             nettyClients.add(nettyClient);
             nettyClient.start();
+        }
+
+        for(NettyClient nettyClient : nettyClients) {
             nettyClient.send(invocation);
         }
 

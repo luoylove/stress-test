@@ -2,6 +2,7 @@ package com.ly.core.tcp.handler;
 
 import com.ly.core.StressRemoteContext;
 import com.ly.core.StressResult;
+import com.ly.core.tcp.client.NettyClient;
 import com.ly.core.tcp.message.Invocation;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -12,6 +13,14 @@ import io.netty.handler.timeout.IdleStateEvent;
  * @Date: 2020/6/28 15:45.
  */
 public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invocation> {
+
+    private static boolean isDown = false;
+
+    private NettyClient nettyClient;
+
+    public NettyClientChannelHandler(NettyClient nettyClient) {
+        this.nettyClient = nettyClient;
+    }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Invocation msg) throws Exception {
@@ -47,13 +56,18 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        // 发起重连
-//        nettyClient.reconnect();
+        // 如果不是手动断开连接就发起重连
+        if (!isDown) {
+            nettyClient.reconnect();
+        }
+
         // 继续触发事件
         super.channelInactive(ctx);
     }
 
     private void doDown(ChannelHandlerContext ctx) {
+        isDown = true;
+        ctx.channel().close();
         ctx.disconnect();
         ctx.close();
         System.out.println("client退出");
