@@ -23,7 +23,7 @@ public class StressWorker<T> implements Runnable{
     private AtomicInteger localTotalCount;
 
     /**内部只有一个线程在执行任务, list线程安全
-     * context中 CopyOnWriteArrayList是一个写线程安全list,
+     * CopyOnWriteArrayList是一个写线程安全list,
      * 虽然比Collections.synchronizedList()读写全加锁性能好, 但是写线程安全实现模式是copy原来的list,
      * 当队列过长, 有oom风险,且每个线程竞争同步list有性能损耗
      * 所有内部维护一个同步list,通过辅助线程进行同步到context中,只有该工作线程与辅助线程竞争

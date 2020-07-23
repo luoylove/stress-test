@@ -109,8 +109,4 @@ public class StressFormat {
     private static List<Long> sort(List<Long> collection) {
         return collection.stream().sorted().collect(Collectors.toList());
     }
-
-    public static void main(String[] args) {
-        System.out.println(getFailedRate(1570, 1340));
-    }
 }

@@ -32,6 +32,10 @@ public class NettyClient {
         this.port = port;
     }
 
+    public Channel getChannel() {
+        return channel;
+    }
+
     private final EventLoopGroup eventExecutors = new NioEventLoopGroup(1);
 
     public void start() throws Exception {

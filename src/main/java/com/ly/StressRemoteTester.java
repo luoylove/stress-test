@@ -7,6 +7,7 @@ import com.ly.core.StressRequest;
 import com.ly.core.StressTask;
 import com.ly.core.taskimpl.LogTask;
 import com.ly.core.tcp.client.NettyClient;
+import com.ly.core.tcp.client.NettyClientManager;
 import com.ly.core.tcp.message.Invocation;
 import com.ly.core.util.ThreadPoolUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -29,33 +30,13 @@ public class StressRemoteTester {
         for(String address : addresses) {
             String[] add = StringUtils.split(address, ":");
             NettyClient nettyClient = new NettyClient(add[0], Integer.valueOf(add[1]));
-            nettyClients.add(nettyClient);
             nettyClient.start();
+            nettyClients.add(nettyClient);
         }
 
         for(NettyClient nettyClient : nettyClients) {
             nettyClient.send(invocation);
         }
-
-        ThreadPoolUtil.execute(() -> {
-            while (true) {
-                for(NettyClient nettyClient : nettyClients) {
-                    if (nettyClient.isShutdown()) {
-                        nettyClient.shutdown();
-                        nettyClients.remove(nettyClient);
-                    }
-                    if (nettyClients.size() == 0) {
-                        isAllShutdown = true;
-                        return;
-                    }
-                }
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
     }
 
     public static void main(String[] args) throws Exception {
@@ -65,7 +46,7 @@ public class StressRemoteTester {
 
         for(;;) {
             StressFormat.format(StressRemoteContext.get());
-            if (isAllShutdown) {
+            if (NettyClientManager.getInstance().isFinish()) {
                 ThreadPoolUtil.shutdown();
                 return;
             }
