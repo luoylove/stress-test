@@ -6,11 +6,13 @@ import com.ly.core.tcp.message.Invocation;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author: luoy
  * @Date: 2020/6/28 15:45.
  */
+@Slf4j
 public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invocation> {
 
     private NettyClient nettyClient;
@@ -31,7 +33,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
         //Netty 提供了 IdleStateHandler 处理器，提供空闲检测的功能，在 Channel 的读或者写空闲时间太长时，将会触发一个 IdleStateEvent 事件
         if (evt instanceof IdleStateEvent) {
             Invocation invocation = Invocation.builder().type(Invocation.Type.HEARTBEAT).build();
-            System.out.println("heartbeat send: " + invocation);
+            log.info("heartbeat send: {}" , invocation);
             manager.send(ctx.channel().id().asLongText(), invocation);
         } else {
             super.userEventTriggered(ctx, evt);
@@ -57,7 +59,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         manager.add(nettyClient);
-        System.out.println("建立连接: " + ctx.channel().id());
+        log.info("建立连接: {}", ctx.channel().id());
     }
 
     @Override

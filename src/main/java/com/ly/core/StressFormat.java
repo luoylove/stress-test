@@ -1,5 +1,7 @@
 package com.ly.core;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,6 +10,7 @@ import java.util.stream.Collectors;
  * @Author: luoy
  * @Date: 2020/6/24 10:15.
  */
+@Slf4j
 public class StressFormat {
     public static void format(StressResult result) {
         //所有task运行时长
@@ -61,7 +64,7 @@ public class StressFormat {
                 .append("95%的耗时在").append(count_95).append(" ms以内").append("\n")
                 .append("99%的耗时在").append(count_99).append(" ms以内").append("\n");
 
-        System.out.println(stringBuilder.toString());
+        log.info("\n" + stringBuilder.toString());
     }
 
     private static Double getAveTime(int totalCount, Double totalTaskTime) {

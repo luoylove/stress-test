@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ly.core.StressRemoteContext;
 import com.ly.core.StressResult;
 import com.ly.core.tcp.message.Invocation;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ConcurrentMap;
 
@@ -12,6 +13,7 @@ import java.util.concurrent.ConcurrentMap;
  * @Author: luoy
  * @Date: 2020/7/13 10:23.
  */
+@Slf4j
 public class NettyClientManager {
 
     private volatile static NettyClientManager MANAGER = null;
@@ -57,7 +59,7 @@ public class NettyClientManager {
 
     public void read(String channelId, Invocation msg) {
         //msg 接收服务端数据
-        System.out.println("接收数据:" + msg);
+        log.info("接收数据: {}", msg);
         switch (msg.getType()) {
             case BUSINESS:
                 doBusiness(msg);
@@ -86,7 +88,7 @@ public class NettyClientManager {
 
     private void doDown(String channelId) {
         removeAndClose(channelId);
-        System.out.println("client退出");
+        log.info("client退出");
         return;
     }
 

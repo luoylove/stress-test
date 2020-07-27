@@ -13,6 +13,7 @@ import com.ly.core.enums.ValidateRule;
 import com.ly.core.enums.ValidateTarget;
 import com.ly.core.taskimpl.LogTask;
 import com.ly.core.util.ThreadPoolUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @Author: luoy
  * @Date: 2020/6/16 16:06.
  */
+@Slf4j
 public class StressTester {
 
     public StressContext getContext() {
@@ -82,14 +84,14 @@ public class StressTester {
             while (isShutdown) {
                 //forever 这种情况需要手动结束
                 if (request.getTotalConcurrencyTime() <= 0L && request.getConcurrencyCount() <= 0) {
-                    System.out.println("forever");
+                    log.info("forever");
                     break;
                 }
 
                 // 总运行次数 如果先达到次数限制,退出
                 if (request.getConcurrencyCount() > 0) {
                     if (stressResult.getTotalCounter().get() >= request.getThreadCount() * request.getConcurrencyCount()) {
-                        System.out.println("count done");
+                        log.info("count done");
                         break;
                     }
                 }
@@ -98,7 +100,7 @@ public class StressTester {
                 if (request.getTotalConcurrencyTime() > 0L) {
                     if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
                         context.setTimeStage(true);
-                        System.out.println("time done");
+                        log.info("time done");
                         break;
                     }
                 }

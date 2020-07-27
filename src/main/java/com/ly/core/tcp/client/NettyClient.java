@@ -7,6 +7,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.TimeUnit;
 
@@ -14,6 +15,7 @@ import java.util.concurrent.TimeUnit;
  * @Author: luoy
  * @Date: 2020/6/28 15:59.
  */
+@Slf4j
 public class NettyClient {
 
     /** 心跳时间*/
@@ -52,7 +54,7 @@ public class NettyClient {
                 return;
             }
             this.channel = future.channel();
-            System.out.println("连接server服务器成功: " + getAddress());
+            log.info("连接server服务器成功: {}", getAddress());
         });
     }
 
@@ -71,7 +73,6 @@ public class NettyClient {
                 e.printStackTrace();
             }
         }
-
         channel.writeAndFlush(invocation);
     }
 
@@ -85,19 +86,19 @@ public class NettyClient {
     public void shutdown() {
         channel.close();
         eventExecutors.shutdownGracefully();
-        System.out.println("client关闭成功: "+ getAddress());
+        log.info("client关闭成功: {}", getAddress());
     }
 
     public void reconnect() {
         this.eventExecutors.schedule(() -> {
-            System.out.println("开始重连: " + getAddress());
+            log.info("{}开始重连", getAddress());
             try {
                 start();
             } catch (Exception e) {
-                System.out.println("重连失败: " + getAddress());
+                log.info("{}重连失败", getAddress());
                 e.printStackTrace();
             }
         }, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
-        System.out.println("连接server服务器失败" + RECONNECT_DELAY_SECONDS + "秒后将发起重连: " + getAddress());
+        log.info("连接server服务器失败, {}秒后将发起重连, clientAddress{}", RECONNECT_DELAY_SECONDS, getAddress());
     }
 }

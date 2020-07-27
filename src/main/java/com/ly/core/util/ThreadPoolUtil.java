@@ -107,7 +107,6 @@ public class ThreadPoolUtil {
                     threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit,
                             workQueue, handler);
                 }
-                System.out.println(threadPool.getActiveCount() + ","+ threadPool.getCorePoolSize()+ ","+ threadPool.getMaximumPoolSize() + ","+ threadPool.getPoolSize() + ","+ threadPool.getTaskCount());
                 return threadPool;
             }
         }

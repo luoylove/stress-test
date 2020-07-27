@@ -7,6 +7,7 @@ import com.ly.core.StressResult;
 import com.ly.core.tcp.message.Invocation;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -16,12 +17,13 @@ import java.util.stream.Collectors;
  * @Author: luoy
  * @Date: 2020/6/28 15:45.
  */
+@Slf4j
 public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invocation> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Invocation msg) throws Exception {
         //msg 接收客户端数据
-        System.out.println("接收数据:" + msg);
+        log.info("接收数据:{}", msg);
         if (msg.getType().equals(Invocation.Type.BUSINESS)) {
             StressRequest stressRequest = (StressRequest)msg.getMessage();
             if (stressRequest != null) {
@@ -42,19 +44,18 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invoc
                             continue;
                         }
                         Invocation invocation = Invocation.builder().type(Invocation.Type.BUSINESS).message(incrementalResult).build();
-                        System.out.println("发送数据:" + invocation);
+                        log.info("发送数据:{}", invocation);
                         ctx.writeAndFlush(invocation);
                     } else {
                         incrementalResult = incrementalResult(originalResult, stressResult);
                         if (incrementalResult != null) {
                             Invocation invocation = Invocation.builder().type(Invocation.Type.BUSINESS).message(incrementalResult).build();
-                            System.out.println("发送数据:" + invocation);
+                            log.info("发送数据:{}", invocation);
                             ctx.writeAndFlush(invocation);
                         }
                         Invocation invocation = Invocation.builder().type(Invocation.Type.DOWN).message(null).build();
-                        System.out.println("发送数据:" + invocation);
+                        log.info("发送数据:{}", invocation);
                         ctx.writeAndFlush(invocation);
-                        System.out.println("该机器压测总数据: " + stressResult);
                         break;
                     }
                 }
@@ -69,7 +70,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invoc
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("address:" + ctx.channel().remoteAddress());
+        log.info("address: {}", ctx.channel().remoteAddress());
     }
 
     /**

@@ -21,8 +21,6 @@ import java.util.List;
  */
 public class StressRemoteTester {
 
-    public static Boolean isAllShutdown = false;
-
     public static void remoteTest(StressRequest request, String...addresses) throws Exception {
 
         List<NettyClient> nettyClients = Lists.newArrayListWithCapacity(addresses.length);
@@ -41,7 +39,11 @@ public class StressRemoteTester {
 
     public static void main(String[] args) throws Exception {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
-        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks).threadCount(10).totalConcurrencyTime(10L * 1000).build();
+        StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks)
+                .threadCount(10)
+                .concurrencyCount(10)
+                .totalConcurrencyTime(10L * 1000)
+                .build();
         StressRemoteTester.remoteTest(stressRequest, "localhost:9998");
 
         for(;;) {
@@ -52,5 +54,5 @@ public class StressRemoteTester {
             }
             Thread.sleep(1000);
         }
-    }
+    } 
 }

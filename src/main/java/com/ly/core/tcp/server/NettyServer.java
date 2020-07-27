@@ -12,11 +12,13 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author: luoy
  * @Date: 2020/6/28 15:41.
  */
+@Slf4j
 public class NettyServer {
     private EventLoopGroup parentGroup = new NioEventLoopGroup(1);
 
@@ -45,9 +47,9 @@ public class NettyServer {
                     .option(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture channelFuture = serverBoot.bind(port).sync();
             if(!channelFuture.isSuccess()){
-                throw new RuntimeException("Server服务启动失败");
+                log.error("Server服务启动失败");
             }
-            System.out.println("Server服务启动成功, 端口: " + port);
+            log.info("Server服务启动成功, 端口: " + port);
             channelFuture.channel().closeFuture().sync();
             channel = channelFuture.channel();
         } finally {

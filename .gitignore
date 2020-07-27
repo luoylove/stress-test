@@ -1,3 +1,4 @@
 .idea/
 stress-test.iml
 target/
+log/
