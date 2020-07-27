@@ -33,11 +33,11 @@ public class KryoDataDecoder extends ByteToMessageDecoder {
         if (in.readableBytes() < messageLength) {
             in.resetReaderIndex();
             return;
-        } else {
-            byte[] bytes = new byte[in.readableBytes()];
-            in.readBytes(bytes);
-            Object obj = KryoCodec.decode(bytes);
-            out.add(obj);
         }
+
+        byte[] bytes = new byte[messageLength];
+        in.readBytes(bytes);
+        Object obj = KryoCodec.decode(bytes);
+        out.add(obj);
     }
 }
