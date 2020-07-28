@@ -25,7 +25,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Invocation msg) throws Exception {
-         manager.read(ctx.channel().id().asLongText(), msg);
+         manager.read(ctx.channel().id().asShortText(), msg);
     }
 
     @Override
@@ -33,8 +33,8 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
         //Netty 提供了 IdleStateHandler 处理器，提供空闲检测的功能，在 Channel 的读或者写空闲时间太长时，将会触发一个 IdleStateEvent 事件
         if (evt instanceof IdleStateEvent) {
             Invocation invocation = Invocation.builder().type(Invocation.Type.HEARTBEAT).build();
-            log.info("heartbeat send: {}" , invocation);
-            manager.send(ctx.channel().id().asLongText(), invocation);
+            log.info("[{}]heartbeat send: {}",ctx.channel().id().asShortText(), invocation);
+            manager.send(ctx.channel().id().asShortText(), invocation);
         } else {
             super.userEventTriggered(ctx, evt);
         }
@@ -47,7 +47,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
      */
     @Override
     public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
-        manager.removeAndClose(ctx.channel().id().asLongText());
+        manager.removeAndClose(ctx.channel().id().asShortText());
         ctx.fireChannelUnregistered();
     }
 
@@ -58,8 +58,7 @@ public class NettyClientChannelHandler extends SimpleChannelInboundHandler<Invoc
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        manager.add(nettyClient);
-        log.info("建立连接: {}", ctx.channel().id());
+        log.info("[{}]建立连接", ctx.channel().id());
     }
 
     @Override

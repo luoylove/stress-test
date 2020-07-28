@@ -47,9 +47,9 @@ public class NettyServer {
                     .option(ChannelOption.SO_KEEPALIVE, true);
             ChannelFuture channelFuture = serverBoot.bind(port).sync();
             if(!channelFuture.isSuccess()){
-                log.error("Server服务启动失败");
+                log.error("Server服务启动失败, 端口: {}", port);
             }
-            log.info("Server服务启动成功, 端口: " + port);
+            log.info("Server服务启动成功, 端口: {}", port);
             channelFuture.channel().closeFuture().sync();
             channel = channelFuture.channel();
         } finally {

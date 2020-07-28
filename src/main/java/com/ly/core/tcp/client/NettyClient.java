@@ -35,7 +35,7 @@ public class NettyClient {
     }
 
     public Channel getChannel() {
-        return channel;
+        return this.channel;
     }
 
     private final EventLoopGroup eventExecutors = new NioEventLoopGroup(1);
@@ -54,7 +54,7 @@ public class NettyClient {
                 return;
             }
             this.channel = future.channel();
-            log.info("连接server服务器成功: {}", getAddress());
+            log.info("连接[{}]服务器成功", getAddress());
         });
     }
 
@@ -63,17 +63,15 @@ public class NettyClient {
     }
 
     public void send(Invocation invocation) {
-        while (true) {
-            if (channel != null && channel.isActive()) {
-                break;
-            }
-            try {
-                Thread.sleep(RECONNECT_DELAY_SECONDS * 1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
         channel.writeAndFlush(invocation);
+    }
+
+    /** 是否活跃*/
+    public boolean isActive() {
+        if (channel ==null ) {
+            return false;
+        }
+        return channel.isActive();
     }
 
     public boolean isShutdown() {
@@ -86,19 +84,19 @@ public class NettyClient {
     public void shutdown() {
         channel.close();
         eventExecutors.shutdownGracefully();
-        log.info("client关闭成功: {}", getAddress());
+        log.info("client断开[{}]连接成功", getAddress());
     }
 
     public void reconnect() {
         this.eventExecutors.schedule(() -> {
-            log.info("{}开始重连", getAddress());
+            log.info("[{}]开始重连", getAddress());
             try {
                 start();
             } catch (Exception e) {
-                log.info("{}重连失败", getAddress());
+                log.info("[{}]重连失败", getAddress());
                 e.printStackTrace();
             }
         }, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
-        log.info("连接server服务器失败, {}秒后将发起重连, clientAddress{}", RECONNECT_DELAY_SECONDS, getAddress());
+        log.info("连接[{}]服务器失败, {}秒后将发起重连", getAddress(), RECONNECT_DELAY_SECONDS);
     }
 }

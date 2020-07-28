@@ -1,12 +1,12 @@
 package com.ly.core.tcp.client;
 
-import com.google.common.collect.Maps;
+import com.google.common.collect.Lists;
 import com.ly.core.StressRemoteContext;
 import com.ly.core.StressResult;
 import com.ly.core.tcp.message.Invocation;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * client管理类
@@ -16,12 +16,16 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 public class NettyClientManager {
 
+    /**重试初始延迟*/
+    public static final Long RECONNECT_DELAY_SECONDS = 3L;
+
+
     private volatile static NettyClientManager MANAGER = null;
 
     /**
-     * Channel-client 映射
+     * client 映射
      */
-    private ConcurrentMap<String, NettyClient> clients = Maps.newConcurrentMap();
+    private CopyOnWriteArrayList<NettyClient> clients = Lists.newCopyOnWriteArrayList();
 
     private NettyClientManager() {}
 
@@ -37,29 +41,50 @@ public class NettyClientManager {
     }
 
     public void add(NettyClient client) {
-        clients.put(client.getChannel().id().asLongText(), client);
+        clients.add(client);
     }
 
     public void removeAndClose(String channelId) {
-        if (clients.containsKey(channelId)) {
-            clients.get(channelId).shutdown();
-            clients.remove(channelId);
-        }
+        clients.forEach( client -> {
+            if(client.isActive()) {
+                if (channelId.equals(client.getChannel().id().asShortText())) {
+                    client.shutdown();
+                    clients.remove(client);
+                }
+            }
+        });
     }
 
     public void sendAll(Invocation invocation) {
-        clients.forEach( (k,v) -> v.send(invocation));
+        int clientSize = clients.size();
+        while (true) {
+            Long clientActiveSize = clients.stream().filter(NettyClient::isActive).count();
+
+            if(clientSize == clientActiveSize) {
+                break;
+            }
+            try {
+                Thread.sleep(RECONNECT_DELAY_SECONDS * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        clients.forEach( v -> v.send(invocation));
     }
 
     public void send(String channelId, Invocation invocation) {
-        if (clients.containsKey(channelId)) {
-            clients.get(channelId).send(invocation);
-        }
+        clients.forEach( client -> {
+            if (client.isActive()) {
+                if (channelId.equals(client.getChannel().id().asShortText())) {
+                    client.send(invocation);
+                }
+            }
+        });
     }
 
     public void read(String channelId, Invocation msg) {
         //msg 接收服务端数据
-        log.info("接收数据: {}", msg);
+        log.info("[{}]接收数据: {}",channelId, msg);
         switch (msg.getType()) {
             case BUSINESS:
                 doBusiness(msg);
@@ -77,9 +102,11 @@ public class NettyClientManager {
     }
 
     public void reconnect(String channelId) {
-        if (clients.containsKey(channelId)) {
-            clients.get(channelId).reconnect();
-        }
+        clients.forEach( client -> {
+            if (channelId.equals(client.getChannel().id().asShortText())) {
+                client.reconnect();
+            }
+        });
     }
 
     public boolean isFinish() {
@@ -88,7 +115,7 @@ public class NettyClientManager {
 
     private void doDown(String channelId) {
         removeAndClose(channelId);
-        log.info("client退出");
+        log.info("[{}]client退出", channelId);
         return;
     }
 

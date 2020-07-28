@@ -22,19 +22,16 @@ import java.util.List;
 public class StressRemoteTester {
 
     public static void remoteTest(StressRequest request, String...addresses) throws Exception {
-
-        List<NettyClient> nettyClients = Lists.newArrayListWithCapacity(addresses.length);
+        NettyClientManager manager = NettyClientManager.getInstance();
         Invocation invocation = Invocation.builder().message(request).type(Invocation.Type.BUSINESS).build();
         for(String address : addresses) {
             String[] add = StringUtils.split(address, ":");
             NettyClient nettyClient = new NettyClient(add[0], Integer.valueOf(add[1]));
             nettyClient.start();
-            nettyClients.add(nettyClient);
+            manager.add(nettyClient);
         }
 
-        for(NettyClient nettyClient : nettyClients) {
-            nettyClient.send(invocation);
-        }
+        manager.sendAll(invocation);
     }
 
     public static void main(String[] args) throws Exception {
@@ -44,7 +41,8 @@ public class StressRemoteTester {
                 .concurrencyCount(10)
                 .totalConcurrencyTime(10L * 1000)
                 .build();
-        StressRemoteTester.remoteTest(stressRequest, "localhost:9998");
+        StressRemoteTester.remoteTest(stressRequest, "localhost:9998", "106.54.36.74:9998");
+//                StressRemoteTester.remoteTest(stressRequest, "106.54.36.74:9998");
 
         for(;;) {
             StressFormat.format(StressRemoteContext.get());
