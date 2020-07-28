@@ -45,14 +45,14 @@ public class NettyClientManager {
     }
 
     public void removeAndClose(String channelId) {
-        clients.forEach( client -> {
-            if(client.isActive()) {
-                if (channelId.equals(client.getChannel().id().asShortText())) {
+        clients.stream()
+                .filter(NettyClient::isActive)
+                .filter(client -> channelId.equals(client.getChannel().id().asShortText()))
+                .findAny()
+                .ifPresent(client -> {
                     client.shutdown();
                     clients.remove(client);
-                }
-            }
-        });
+                });
     }
 
     public void sendAll(Invocation invocation) {
@@ -73,13 +73,11 @@ public class NettyClientManager {
     }
 
     public void send(String channelId, Invocation invocation) {
-        clients.forEach( client -> {
-            if (client.isActive()) {
-                if (channelId.equals(client.getChannel().id().asShortText())) {
-                    client.send(invocation);
-                }
-            }
-        });
+        clients.stream()
+                .filter(NettyClient::isActive)
+                .filter(client -> channelId.equals(client.getChannel().id().asShortText()))
+                .findAny()
+                .ifPresent(client -> client.send(invocation));
     }
 
     public void read(String channelId, Invocation msg) {
@@ -102,11 +100,10 @@ public class NettyClientManager {
     }
 
     public void reconnect(String channelId) {
-        clients.forEach( client -> {
-            if (channelId.equals(client.getChannel().id().asShortText())) {
-                client.reconnect();
-            }
-        });
+        clients.stream()
+                .filter(client -> channelId.equals(client.getChannel().id().asShortText()))
+                .findAny()
+                .ifPresent(NettyClient::reconnect);
     }
 
     public boolean isFinish() {
