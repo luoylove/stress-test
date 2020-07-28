@@ -19,8 +19,10 @@ public class NettyClientManager {
     /**重试初始延迟*/
     public static final Long RECONNECT_DELAY_SECONDS = 3L;
 
-
     private volatile static NettyClientManager MANAGER = null;
+
+    /** 压力机计数器*/
+    private int reomteCount = 0;
 
     /**
      * client 映射
@@ -42,6 +44,7 @@ public class NettyClientManager {
 
     public void add(NettyClient client) {
         clients.add(client);
+        reomteCount++;
     }
 
     public void removeAndClose(String channelId) {
@@ -55,11 +58,12 @@ public class NettyClientManager {
                 });
     }
 
-    public void sendAll(Invocation invocation) {
+    public void syncSendAll(Invocation invocation) {
         int clientSize = clients.size();
         while (true) {
             Long clientActiveSize = clients.stream().filter(NettyClient::isActive).count();
 
+            //所有client都连上了再同步发送
             if(clientSize == clientActiveSize) {
                 break;
             }
@@ -118,6 +122,8 @@ public class NettyClientManager {
 
     private void doBusiness(Invocation msg) {
         StressResult remoteResult = (StressResult) msg.getMessage();
+        int threadNumber = reomteCount * remoteResult.getThreadCount();
+        remoteResult.setThreadCount(threadNumber);
         if (remoteResult.getTotalCounter().get() <= 0) {
             return;
         }

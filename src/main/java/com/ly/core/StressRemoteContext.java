@@ -20,6 +20,7 @@ public class StressRemoteContext {
                 totalResult.getFailedCounter().addAndGet(incrementalResult.getFailedCounter().get());
                 totalResult.getEveryData().addAll(incrementalResult.getEveryData());
                 totalResult.getEveryTimes().addAll(incrementalResult.getEveryTimes());
+                totalResult.setThreadCount(incrementalResult.getThreadCount());
                 if (incrementalResult.getTotalTime() != null && totalResult.getTotalTime() < incrementalResult.getTotalTime()) {
                     totalResult.setTotalTime(incrementalResult.getTotalTime());
                 }

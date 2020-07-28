@@ -31,14 +31,13 @@ public class StressRemoteTester {
             manager.add(nettyClient);
         }
 
-        manager.sendAll(invocation);
+        manager.syncSendAll(invocation);
     }
 
     public static void main(String[] args) throws Exception {
         List<StressTask<String>> tasks = Lists.newArrayList(new LogTask("1"), new LogTask("2"), new LogTask("3"), new LogTask("4"), new LogTask("5"), new LogTask("6"), new LogTask("7"));
         StressRequest<String> stressRequest = StressRequest.<String>builder().tasks(tasks)
                 .threadCount(10)
-                .concurrencyCount(10)
                 .totalConcurrencyTime(10L * 1000)
                 .build();
         StressRemoteTester.remoteTest(stressRequest, "localhost:9998", "106.54.36.74:9998");
