@@ -40,8 +40,7 @@ public class StressRemoteTester {
                 .threadCount(10)
                 .totalConcurrencyTime(10L * 1000)
                 .build();
-        StressRemoteTester.remoteTest(stressRequest, "localhost:9998", "106.54.36.74:9998");
-//                StressRemoteTester.remoteTest(stressRequest, "106.54.36.74:9998");
+        StressRemoteTester.remoteTest(stressRequest, "localhost:9998");
 
         for(;;) {
             StressFormat.format(StressRemoteContext.get());

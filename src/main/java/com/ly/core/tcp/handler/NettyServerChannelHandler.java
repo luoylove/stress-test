@@ -2,6 +2,7 @@ package com.ly.core.tcp.handler;
 
 import com.google.common.collect.Lists;
 import com.ly.StressTester;
+import com.ly.core.StressContext;
 import com.ly.core.StressRequest;
 import com.ly.core.StressResult;
 import com.ly.core.tcp.message.Invocation;
@@ -10,6 +11,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -19,6 +21,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invocation> {
+    private StressTester tester = new StressTester();
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Invocation msg) throws Exception {
@@ -27,9 +30,7 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invoc
         if (msg.getType().equals(Invocation.Type.BUSINESS)) {
             StressRequest stressRequest = (StressRequest)msg.getMessage();
             if (stressRequest != null) {
-                StressTester tester = new StressTester();
                 StressResult stressResult = tester.test(stressRequest);
-
                 StressResult originalResult = null;
 
                 //发送增量数据过去
@@ -60,6 +61,13 @@ public class NettyServerChannelHandler extends SimpleChannelInboundHandler<Invoc
                     }
                 }
             }
+        } else if (msg.getType().equals(Invocation.Type.DOWN)) {
+            StressContext context = tester.getContext();
+            if (Objects.nonNull(context)) {
+                context.setTimeStage(true);
+            }
+        } else {
+            return;
         }
     }
 
