@@ -54,7 +54,7 @@ public class NettyClient {
                 return;
             }
             this.channel = future.channel();
-            log.info("连接[{}]服务器成功", getAddress());
+            log.info("[{}]连接服务器成功", getAddress());
         });
     }
 
@@ -82,9 +82,11 @@ public class NettyClient {
     }
 
     public void shutdown() {
-        channel.close();
+        if(!isShutdown()) {
+            channel.close();
+        }
         eventExecutors.shutdownGracefully();
-        log.info("client断开[{}]连接成功", getAddress());
+        log.info("[{}]断开连接", getAddress());
     }
 
     public void reconnect() {
@@ -97,6 +99,6 @@ public class NettyClient {
                 e.printStackTrace();
             }
         }, RECONNECT_DELAY_SECONDS, TimeUnit.SECONDS);
-        log.info("连接[{}]服务器失败, {}秒后将发起重连", getAddress(), RECONNECT_DELAY_SECONDS);
+        log.info("[{}]连接服务器失败, {}秒后将发起重连", getAddress(), RECONNECT_DELAY_SECONDS);
     }
 }

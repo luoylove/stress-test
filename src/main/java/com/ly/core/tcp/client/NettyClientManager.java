@@ -22,7 +22,7 @@ public class NettyClientManager {
     private volatile static NettyClientManager MANAGER = null;
 
     /** 压力机计数器*/
-    private int reomteCount = 0;
+    private int remoteCount = 0;
 
     /**
      * client 映射
@@ -44,7 +44,7 @@ public class NettyClientManager {
 
     public void add(NettyClient client) {
         clients.add(client);
-        reomteCount++;
+        remoteCount++;
     }
 
     public void removeAndClose(String channelId) {
@@ -56,6 +56,10 @@ public class NettyClientManager {
                     client.shutdown();
                     clients.remove(client);
                 });
+    }
+
+    public void shutdownAll() {
+        clients.forEach(NettyClient::shutdown);
     }
 
     public void syncSendAll(Invocation invocation) {
@@ -122,7 +126,7 @@ public class NettyClientManager {
 
     private void doBusiness(Invocation msg) {
         StressResult remoteResult = (StressResult) msg.getMessage();
-        int threadNumber = reomteCount * remoteResult.getThreadCount();
+        int threadNumber = remoteCount * remoteResult.getThreadCount();
         remoteResult.setThreadCount(threadNumber);
         if (remoteResult.getTotalCounter().get() <= 0) {
             return;

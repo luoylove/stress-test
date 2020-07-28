@@ -24,14 +24,27 @@ public class StressRemoteTester {
     public static void remoteTest(StressRequest request, String...addresses) throws Exception {
         NettyClientManager manager = NettyClientManager.getInstance();
         Invocation invocation = Invocation.builder().message(request).type(Invocation.Type.BUSINESS).build();
+        connectAll(addresses);
+        manager.syncSendAll(invocation);
+    }
+
+    /** 停止远程压测机器正在执行的压测脚本**/
+    public static void remoteStop(String...addresses) throws Exception{
+        NettyClientManager manager = NettyClientManager.getInstance();
+        Invocation invocation = Invocation.builder().type(Invocation.Type.DOWN).build();
+        connectAll(addresses);
+        manager.syncSendAll(invocation);
+        manager.shutdownAll();
+    }
+
+    private static void connectAll(String...addresses) throws Exception {
+        NettyClientManager manager = NettyClientManager.getInstance();
         for(String address : addresses) {
             String[] add = StringUtils.split(address, ":");
             NettyClient nettyClient = new NettyClient(add[0], Integer.valueOf(add[1]));
             nettyClient.start();
             manager.add(nettyClient);
         }
-
-        manager.syncSendAll(invocation);
     }
 
     public static void main(String[] args) throws Exception {
