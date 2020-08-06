@@ -65,6 +65,12 @@ public class HttpUtil {
      */
     private static CloseableHttpClient httpClient;
 
+    /**
+     * http初始化, 作用是触发jvm加载该类,然后执行static块
+     * 需要先于task()方法前调用,不然会导致第一次http请求耗时过长
+     */
+    public static void init() {}
+
     static {
         //设置Keep alive 当默认没有timeout时候设置成60s
         ConnectionKeepAliveStrategy strategy = (response, context) -> {
@@ -100,13 +106,6 @@ public class HttpUtil {
                 .setConnectionManager(connectionManager)
                 .setKeepAliveStrategy(strategy)
                 .build();
-
-        try {
-            HttpGet httpGet = new HttpGet(new URIBuilder("http://www.baidu.com").build());
-            httpClient.execute(httpGet);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
         //虚拟机关闭时关闭请求客户端
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
