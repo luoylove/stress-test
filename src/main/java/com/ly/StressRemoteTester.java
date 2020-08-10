@@ -13,6 +13,7 @@ import com.ly.core.util.ThreadPoolUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 远程压测
@@ -61,7 +62,7 @@ public class StressRemoteTester {
                 ThreadPoolUtil.shutdown();
                 return;
             }
-            Thread.sleep(1000);
+            TimeUnit.SECONDS.sleep(1);
         }
     } 
 }

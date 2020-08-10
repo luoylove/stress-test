@@ -63,7 +63,7 @@ public class ThreadPoolUtil {
      */
     public static final RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
 
-    public static ThreadPoolExecutor threadPool;
+    public static volatile ThreadPoolExecutor threadPool;
 
     /**
      * 无返回值直接执行

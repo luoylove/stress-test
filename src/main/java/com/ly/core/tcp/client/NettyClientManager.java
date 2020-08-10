@@ -7,6 +7,7 @@ import com.ly.core.tcp.message.Invocation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * client管理类
@@ -72,7 +73,7 @@ public class NettyClientManager {
                 break;
             }
             try {
-                Thread.sleep(RECONNECT_DELAY_SECONDS * 1000);
+                TimeUnit.SECONDS.sleep(RECONNECT_DELAY_SECONDS);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

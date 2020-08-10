@@ -5,6 +5,7 @@ import com.ly.core.util.HttpResponse;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -89,7 +90,7 @@ public class AsyncStressResultHandler implements Runnable{
                 context.setMonitorFinish(true);
             }
             try {
-                Thread.sleep(MONITOR_TIME_INTERVAL);
+                TimeUnit.MILLISECONDS.sleep(MONITOR_TIME_INTERVAL);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

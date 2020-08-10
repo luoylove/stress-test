@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -186,7 +187,7 @@ public class StressTester {
                 StressFormat.format(stressResult);
                 return;
             }
-            Thread.sleep(1000);
+            TimeUnit.SECONDS.sleep(1);
         }
     }
 }
