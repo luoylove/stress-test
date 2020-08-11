@@ -9,6 +9,7 @@ import com.ly.core.taskimpl.LogTask;
 import com.ly.core.tcp.client.NettyClient;
 import com.ly.core.tcp.client.NettyClientManager;
 import com.ly.core.tcp.message.Invocation;
+import com.ly.core.util.ScheduledThreadPoolUtil;
 import com.ly.core.util.ThreadPoolUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -56,13 +57,19 @@ public class StressRemoteTester {
                 .build();
         StressRemoteTester.remoteTest(stressRequest, "localhost:9998");
 
-        for(;;) {
-            StressFormat.format(StressRemoteContext.get());
-            if (NettyClientManager.getInstance().isFinish()) {
-                ThreadPoolUtil.shutdown();
-                return;
-            }
-            TimeUnit.SECONDS.sleep(1);
-        }
-    } 
+        ScheduledThreadPoolUtil.scheduleAtFixedRateByCompute( () -> StressFormat.format(StressRemoteContext.get()),
+                0,
+                1,
+                ()-> {
+                    if (NettyClientManager.getInstance().isFinish()) {
+                        StressFormat.format(StressRemoteContext.get());
+                        ThreadPoolUtil.shutdown();
+                        ScheduledThreadPoolUtil.shutdown();
+                        return true;
+                    }
+                    return false;
+                },
+                TimeUnit.SECONDS
+        );
+    }
 }

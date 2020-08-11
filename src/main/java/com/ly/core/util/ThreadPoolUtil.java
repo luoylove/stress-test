@@ -1,5 +1,7 @@
 package com.ly.core.util;
 
+import org.apache.commons.lang3.concurrent.BasicThreadFactory;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
@@ -19,21 +21,21 @@ public class ThreadPoolUtil {
      * 线程池长期维持的线程数，即使线程处于Idle状态，也不会回收。
      * 当前机器核数 * 2
      */
-    public static final int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 ;
+    private static final int corePoolSize = Runtime.getRuntime().availableProcessors() * 2 ;
 
     /**
      * 线程数的上限
      */
-    public static final int maximumPoolSize = 50;
+    private static final int maximumPoolSize = 50;
 
     /**
      * 超过corePoolSize的线程的idle时长，
      * 超过这个时间，多余的线程会被回收
      * 单位unit
      */
-    public static final long keepAliveTime = 60;
+    private static final long keepAliveTime = 60;
 
-    public static final TimeUnit unit = TimeUnit.SECONDS;
+    private static final TimeUnit unit = TimeUnit.SECONDS;
 
     /**
      * 任务的排队队列
@@ -52,7 +54,7 @@ public class ThreadPoolUtil {
      * SynchronizedQueue
      * 无界的FIFO同步队列
      */
-    public static final BlockingQueue workQueue = new LinkedBlockingQueue<>(20);
+    private static final BlockingQueue workQueue = new LinkedBlockingQueue<>(20);
 
     /**
      * 拒绝策略
@@ -61,9 +63,9 @@ public class ThreadPoolUtil {
      * DiscardOldestPolicy	丢弃执行队列中最老的任务，尝试为当前提交的任务腾出位置
      * CallerRunsPolicy	直接由提交任务者执行这个任务
      */
-    public static final RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
+    private static final RejectedExecutionHandler handler = new ThreadPoolExecutor.CallerRunsPolicy();
 
-    public static volatile ThreadPoolExecutor threadPool;
+    private static volatile ThreadPoolExecutor threadPool;
 
     /**
      * 无返回值直接执行
@@ -99,17 +101,16 @@ public class ThreadPoolUtil {
     }
 
     private static ThreadPoolExecutor createThreadPool() {
-        if (threadPool != null && !threadPool.isShutdown()) {
-            return threadPool;
-        } else {
+        if (threadPool == null || threadPool.isShutdown()) {
             synchronized (ThreadPoolUtil.class) {
                 if (threadPool == null || threadPool.isShutdown()) {
                     threadPool = new ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit,
-                            workQueue, handler);
+                            workQueue, new BasicThreadFactory.Builder().namingPattern("user-pool-%d").daemon(false).build()
+                            , handler);
                 }
-                return threadPool;
             }
         }
+        return threadPool;
     }
 
     public static void shutdown() {

@@ -12,6 +12,7 @@ import com.ly.core.StressWorker;
 import com.ly.core.enums.ValidateRule;
 import com.ly.core.enums.ValidateTarget;
 import com.ly.core.taskimpl.LogTask;
+import com.ly.core.util.ScheduledThreadPoolUtil;
 import com.ly.core.util.ThreadPoolUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -180,14 +181,18 @@ public class StressTester {
         StressTester tester = new StressTester();
         StressResult stressResult = tester.test(stressRequest);
 
-        for(;;) {
-            StressFormat.format(stressResult);
-            if (tester.getContext().isMonitorFinish()){
-                ThreadPoolUtil.shutdown();
-                StressFormat.format(stressResult);
-                return;
-            }
-            TimeUnit.SECONDS.sleep(1);
-        }
+        ScheduledThreadPoolUtil.scheduleAtFixedRateByCompute(()-> StressFormat.format(stressResult),
+                0,
+                1,
+                () -> {
+                    if (tester.getContext().isMonitorFinish()){
+                        ThreadPoolUtil.shutdown();
+                        ScheduledThreadPoolUtil.shutdown();
+                        StressFormat.format(stressResult);
+                        return true;
+                    }
+                    return false;
+                },
+                TimeUnit.SECONDS);
     }
 }
