@@ -61,9 +61,9 @@ public class HttpUtil {
     private final static int SOCKET_TIMEOUT = 5000;
 
     /**
-     * http请求客户端
+     * http请求客户端,保证每个线程可见性
      */
-    private static CloseableHttpClient httpClient;
+    private static volatile CloseableHttpClient httpClient;
 
     /**
      * http初始化, 作用是触发jvm加载该类,然后执行static块

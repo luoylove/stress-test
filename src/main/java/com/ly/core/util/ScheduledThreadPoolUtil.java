@@ -14,7 +14,7 @@ public class ScheduledThreadPoolUtil {
     private static final int CORE_POOL_SIZE =  5;
 
     /** 监听剔除定时任务间隔时间*/
-    private static final long REJECT_FUTURE_INTERVAL_TIME = 100L;
+    private static final long REJECT_FUTURE_INTERVAL_TIME = 1;
 
     private static volatile ScheduledThreadPoolExecutor THREAD_POOL;
 
@@ -111,7 +111,7 @@ public class ScheduledThreadPoolUtil {
      *              执行多少次后退出
      * @param unit
      */
-    public static void scheduleDelayByNumber(Runnable command, long initialDelay, long delay, long number, TimeUnit unit) {
+    public static void scheduleDelayByNumber(Runnable command, long initialDelay, long delay, int number, TimeUnit unit) {
         ScheduledThreadPoolExecutor poolExecutor = ScheduledThreadPoolUtil.getInstance();
         long everyDelay = initialDelay;
         for (int i = 0; i < number; i++) {

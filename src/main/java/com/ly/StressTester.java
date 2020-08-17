@@ -85,7 +85,7 @@ public class StressTester {
 
             while (isShutdown) {
                 //forever 这种情况需要手动结束
-                if (request.getTotalConcurrencyTime() <= 0L && request.getConcurrencyCount() <= 0) {
+                if (request.getTotalConcurrencyTime() <= 0 && request.getConcurrencyCount() <= 0) {
                     log.info("forever");
                     break;
                 }
@@ -99,7 +99,7 @@ public class StressTester {
                 }
 
                 // 总运行时间 如果先达到时间限制,退出
-                if (request.getTotalConcurrencyTime() > 0L) {
+                if (request.getTotalConcurrencyTime() > 0) {
                     if (System.currentTimeMillis() - startRunTime >= request.getTotalConcurrencyTime()) {
                         context.setTimeStage(true);
                         log.info("time done");
@@ -176,7 +176,7 @@ public class StressTester {
                                         .target(ValidateTarget.RESPONSE_VALUE)
                                         .data("2").build())
                         .threadCount(10)
-                        .totalConcurrencyTime(10L * 1000)
+                        .totalConcurrencyTime(10 * 1000)
                         .build();
         StressTester tester = new StressTester();
         StressResult stressResult = tester.test(stressRequest);
